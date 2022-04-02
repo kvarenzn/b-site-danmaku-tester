@@ -559,6 +559,7 @@
             display: flex;
             flex-direction: row;
             height: 5vh;
+            min-height: 50px;
             justify-content: space-between;
             background-color: black;
             box-shadow: black 1px 1px 2px 1px;
@@ -987,6 +988,44 @@
             },
             components: {
                 draggable
+            },
+            watch: {
+                roomId(val) {
+                    localStorage.setItem('roomId', val);
+                },
+                currentOrder(val) {
+                    localStorage.setItem('currentOrder', val);
+                },
+                currentRuleId(val) {
+                    localStorage.setItem('currentRuleId', val);
+                },
+                selectedIndex(val) {
+                    localStorage.setItem('selectedIndex', val);
+                },
+                members: {
+                    handler(val) {
+                        localStorage.setItem('members', JSON.stringify(val));
+                    },
+                    deep: true
+                }
+            },
+            mounted() {
+                // try load data from storage
+                const loadData = (name, fn) => {
+                    let value = localStorage.getItem(name);
+                    fn = fn || (v => v);
+                    if (typeof value === 'string') {
+                        this[name] = fn(value);
+                    }
+                };
+                loadData('roomId');
+                loadData('currentOrder', v => +v);
+                loadData('currentRuleId', v => +v);
+                loadData('selectedIndex', v => +v);
+                loadData('members', JSON.parse);
+                if (this.selectedIndex != -1) {
+                    this.selectedMember = this.members[this.selectedIndex];
+                }
             }
         });
 
