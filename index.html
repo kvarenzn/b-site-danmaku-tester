@@ -23,7 +23,7 @@
             HEARTBEAT: 1,
             ZLIB: 2,
             BROTLI: 3
-        })
+        });
 
         class DanmakuClient {
             constructor() {
@@ -200,6 +200,14 @@
         }
     </script>
     <script>
+        const DanmakuType = Object.freeze({
+            1: '滚动弹幕',
+            4: '底端弹幕',
+            5: '顶端弹幕',
+            6: '逆向弹幕',
+            7: '精准定位',
+            8: '高级弹幕'
+        });
         const match = (rule, danmaku) => {
             switch (rule.type) {
                 case 'and':
@@ -216,8 +224,12 @@
                         }
                     }
                     return false;
-                case 'sender': {
+                case 'uid': {
                     let result = rule.rule == danmaku.userId;
+                    return rule.inverse ? !result : result;
+                }
+                case 'user': {
+                    let result = rule.rule == danmaku.user;
                     return rule.inverse ? !result : result;
                 }
                 case 'content':
@@ -227,13 +239,27 @@
                     } catch (e) {
                         return false;
                     }
+                case 'type': {
+                    let rule = +rule.rule;
+                    let result;
+                    if (rule == 1) {
+                        result = danmaku.type <= 3;
+                    } else {
+                        result = danmaku.type == rule;
+                    }
+                    return rule.inverse ? !result : result;
+                }
             }
         };
 
         const describeRule = rule => {
             switch (rule.type) {
-                case 'sender':
+                case 'uid':
                     return `发送者UID${rule.inverse ? '不' : ''}是${rule.rule}`;
+                case 'user':
+                    return `发送者${rule.inverse ? '不' : ''}是@${rule.rule}`;
+                case 'type':
+                    return `弹幕${rule.inverse ? '不' : ''}是${DanmakuType[rule.rule]}`;
                 case 'content':
                     return `弹幕内容${rule.inverse ? '不' : ''}匹配/${rule.rule}/`;
                 case 'and': {
@@ -262,11 +288,18 @@
             <div class="danmaku-view">
                 <template v-if="danmakuList.length">
                     <button class="floating-delete-button" @click="clearDanmakuList">清空弹幕列表</button>
+                    <button class="floating-open-button" @click="openFloatingWindow" v-if="!floatingWindowOpened">开启弹幕悬浮窗</button>
                     <div class="scroll-list" ref="danmakuScroll">
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
-                                <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.userId }})</div>
-                                <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
+                                <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
+                                    <div class="danmaku-user" style="text-decoration: line-through;">{{ danmaku.user }} ({{ danmaku.userId }})</div>
+                                    <div class="danmaku-content" style="text-decoration: line-through; color: gray;">{{ danmaku.content }}</div>
+                                </template>
+                                <template v-else>
+                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.userId }})</div>
+                                    <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>    
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -327,21 +360,33 @@
             <div class="settings-view">
                 <div class="settings-view-inner" v-if="selectedMember">
                     <div class="settings-category">
-                        <div class="category-name">弹幕气泡样式</div>
+                        <div class="category-name">基础设置</div>
                         <div class="category-content">
-                            <div class="labeled-input">
-                                <div class="labeled-input-label">规则名称</div>
-                                <input class="labeled-input-input" v-model="selectedMember.name">
+                            <div class="labeled-item">
+                                <div class="labeled-item-label">规则名称</div>
+                                <input class="labeled-item-item" v-model="selectedMember.name">
                             </div>
-                            <div class="labeled-input">
-                                <div class="labeled-input-label tooltip">弹幕颜色<div class="tooltip-content">可填写任意合法css颜色</div></div>
-                                <input class="colored-input-input" v-model="selectedMember.style.fontColor">
-                                <div class="colored-input-color" :style="{ background: selectedMember.style.fontColor }"></div>
+                            <div class="labeled-item">
+                                <div class="labeled-item-label tooltip">匹配行为<div class="tooltip-content">匹配成功之后的行为</div></div>
+                                <select v-model="selectedMember.action" class="labeled-item-item">
+                                    <option value="highlight">高亮匹配弹幕</option>
+                                    <option value="ignore">屏蔽匹配弹幕</option>
+                                </select>
                             </div>
-                            <div class="labeled-input">
-                                <div class="labeled-input-label tooltip">样式背景<div class="tooltip-content">可填写任意合法css颜色</div></div>
-                                <input class="colored-input-input" v-model="selectedMember.style.backgroundColor">
-                                <div class="colored-input-color" :style="{ background: selectedMember.style.backgroundColor }"></div>
+                            <div class="settings-category" v-if="selectedMember.action == 'highlight'">
+                                <div class="category-name">行为设置</div>
+                                <div class="category-content">
+                                    <div class="labeled-item">
+                                        <div class="labeled-item-label tooltip">弹幕颜色<div class="tooltip-content">可填写任意合法css颜色</div></div>
+                                        <input class="colored-input-input" v-model="selectedMember.style.fontColor">
+                                        <div class="colored-input-color" :style="{ background: selectedMember.style.fontColor }"></div>
+                                    </div>
+                                    <div class="labeled-item">
+                                        <div class="labeled-item-label tooltip">样式背景<div class="tooltip-content">可填写任意合法css颜色</div></div>
+                                        <input class="colored-input-input" v-model="selectedMember.style.backgroundColor">
+                                        <div class="colored-input-color" :style="{ background: selectedMember.style.backgroundColor }"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -367,6 +412,8 @@
                                 匹配细则为空
                                 <br/>
                                 请点击右下角的(+)按钮以添加匹配细则
+                                <br/>
+                                按住Shift同时单击某条细则可以删除之
                             </div>
                         </div>
                     </div>
@@ -386,21 +433,39 @@
             <div class="settings-category">
                 <div class="category-name">要添加的匹配细则是？</div>
                 <div class="category-content">
-                    <div class="dialog-big-button" @click="addRule('content')">
-                        <div class="big-button-label">匹配弹幕内容</div>
-                        <div class="big-button-description">使用正则表达式匹配弹幕内容（点击规则名称可以切换匹配/不匹配）</div>
+                    <div class="settings-category">
+                        <div class="category-name">具体规则（点击规则名称可以切换匹配/不匹配）</div>
+                        <div class="category-content">
+                            <div class="dialog-big-button" @click="addRule('content')">
+                                <div class="big-button-label">匹配弹幕内容</div>
+                                <div class="big-button-description">使用正则表达式匹配弹幕内容</div>
+                            </div>
+                            <div class="dialog-big-button" @click="addRule('uid')">
+                                <div class="big-button-label">匹配弹幕发送者UID</div>
+                                <div class="big-button-description">只有发送者UID与设置的内容完全相同时才会匹配</div>
+                            </div>
+                            <div class="dialog-big-button" @click="addRule('user')">
+                                <div class="big-button-label">匹配弹幕发送者昵称</div>
+                                <div class="big-button-description">只有发送者昵称与设置的内容完全相同时才会匹配</div>
+                            </div>
+                            <div class="dialog-big-button" @click="addRule('type')">
+                                <div class="big-button-label">匹配弹幕种类</div>
+                                <div class="big-button-description">只有弹幕种类（如滚动弹幕/底端弹幕）与设置的内容完全相同时才会匹配</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="dialog-big-button" @click="addRule('sender')">
-                        <div class="big-button-label">匹配弹幕发送者UID</div>
-                        <div class="big-button-description">只有发送者UID与设置的内容完全相同时才会匹配（点击规则名称可以切换匹配/不匹配）</div>
-                    </div>
-                    <div class="dialog-big-button" @click="addRule('and')">
-                        <div class="big-button-label">“并且”规则组</div>
-                        <div class="big-button-description">只有当规则组内的所有规则均匹配时才会被视作匹配</div>
-                    </div>
-                    <div class="dialog-big-button" @click="addRule('or')">
-                        <div class="big-button-label">“或者”规则组</div>
-                        <div class="big-button-description">规则组内的任一规则匹配时就会被视作匹配</div>
+                    <div class="settings-category">
+                        <div class="category-name">抽象规则组</div>
+                        <div class="category-content">
+                            <div class="dialog-big-button" @click="addRule('and')">
+                                <div class="big-button-label">“并且”规则组</div>
+                                <div class="big-button-description">只有当规则组内的所有规则均匹配时才会被视作匹配</div>
+                            </div>
+                            <div class="dialog-big-button" @click="addRule('or')">
+                                <div class="big-button-label">“或者”规则组</div>
+                                <div class="big-button-description">规则组内的任一规则匹配时就会被视作匹配</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="dialog-big-button" @click="closeAddRuleDialog">
                         <div class="big-button-label">取消添加</div>
@@ -409,6 +474,12 @@
                 </div>
             </div>
         </dialog>
+        <floating-danmaku-window
+            :selected-danmaku-list="selectedDanmakuList"
+            @close-button-clicked="closeFloatingWindow"
+            v-show="floatingWindowOpened"
+            ref="floatingWindow">
+        </floating-danmaku-window>
     </div>
     <style>
         .tooltip {
@@ -525,6 +596,33 @@
             display: flex;
             flex-direction: column;
             margin: 10px;
+        }
+
+        .simple-rule-box {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .simple-rule-box:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .rule-box-label {
+            border-radius: 10px 0 0 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            color: white;
+
+        }
+
+        .rule-box-input {
+            border-radius: 0 10px 10px 0;
+            background-color: transparent;
+            border: rgba(255, 255, 255, 0.2) 1px solid;
+            color: white;
+            font-size: large;
+            flex-grow: 1;
         }
 
         .rule-input {
@@ -753,6 +851,24 @@
             background-color: transparent;
         }
 
+        .floating-open-button {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            background-color: transparent;
+            border: cyan 1px solid;
+            color: cyan;
+            border-radius: 3px;
+        }
+
+        .floating-open-button:hover {
+            background-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .floating-open-button:active {
+            background-color: transparent;
+        }
+
         .floating-apply-button {
             position: absolute;
             top: 0;
@@ -776,20 +892,20 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .labeled-input {
+        .labeled-item {
             display: flex;
             flex-direction: row;
             justify-content: center;
         }
 
-        .labeled-input-label {
+        .labeled-item-label {
             border-radius: 10px 0 0 10px;
             background-color: rgba(255, 255, 255, 0.2);
             padding: 10px 20px;
             color: white;
         }
 
-        .labeled-input-input {
+        .labeled-item-item {
             border-radius: 0 10px 10px 0;
             background-color: transparent;
             border: rgba(255, 255, 255, 0.2) 1px solid;
@@ -820,6 +936,36 @@
             flex-direction: column;
             flex-grow: 1;
         }
+
+        .floating-danmaku-window {
+            position: fixed;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border:rgba(255, 255, 255, 0.4) 1px solid;
+            box-shadow: rgba(255, 255, 255, 0.4) 1px 1px 1px 1px;
+            height: 50vh;
+            width: 33vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .floating-danmaku-window-inner {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .selected-danmaku-list {
+            overflow-y: scroll;
+            height: 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        select option {
+            background-color: #222;
+        }
     </style>
     <script>
         const draggable = vuedraggable;
@@ -836,7 +982,11 @@
                     currentOrder: 1,
                     currentRuleId: 1,
                     dialogOpened: false,
-                    stayAtBottom: true
+                    stayAtBottom: true,
+                    floatingWindowOpened: false,
+                    selectedDanmakuList: [],
+                    danmakuHistoryCount: 5000,
+                    selectedDanmakuHistoryCount: 300
                 };
             },
             methods: {
@@ -855,14 +1005,25 @@
                                     id: this.danmakuList.length,
                                     user: user[1],
                                     userId: user[0],
+                                    type: msg.info[0][1],
                                     content: msg.info[1],
                                     member: null
                                 }
+
                                 for (let member of this.members) {
                                     if (match({type: 'or', rules: member.rules}, danmaku)) {
                                         danmaku.member = member;
+                                        if (member.action == 'highlight') {
+                                            if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
+                                                this.selectedDanmakuList.shift();
+                                            }
+                                            this.selectedDanmakuList.push(danmaku);
+                                        }
                                         break;
                                     }
+                                }
+                                if (this.danmakuList.length > this.danmakuHistoryCount) {
+                                    this.danmakuList.shift();
                                 }
                                 this.danmakuList.push(danmaku);
                                 
@@ -879,6 +1040,7 @@
                         name: '匹配规则#' + this.currentOrder,
                         rules: [],
                         rulesDescription: '空',
+                        action: 'highlight',
                         style: {
                             fontColor: 'white',
                             backgroundColor: 'transparent'
@@ -907,12 +1069,20 @@
                 addRule(type) {
                     let ruleId = this.currentRuleId;
                     switch (type) {
-                        case 'sender':
+                        case 'uid':
+                        case 'user':
                         case 'content':
                             this.selectedMember.rules.push({
                                 id: ruleId,
                                 type,
                                 rule: ''
+                            });
+                            break;
+                        case 'type':
+                            this.selectedMember.rules.push({
+                                id: ruleId,
+                                type,
+                                rule: '1'
                             });
                             break;
                         case 'and':
@@ -984,6 +1154,12 @@
                             // this.$refs.danmakuScroll.scrollTop = this.$refs.danmakuScroll.scrollHeight;
                         }
                     });
+                },
+                openFloatingWindow() {
+                    this.floatingWindowOpened = true;
+                },
+                closeFloatingWindow() {
+                    this.floatingWindowOpened = false;
                 }
             },
             components: {
@@ -1040,7 +1216,9 @@
             <and-selector :rule="rule" :parent="parent" :subIndex="subIndex" :that="that" v-if="rule.type === 'and'"></and-selector>
             <or-selector :rule="rule" :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'or'"></or-selector>
             <match-content :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'content'"></match-content>
-            <match-sender :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'sender'"></match-sender>`
+            <match-uid :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'uid'"></match-uid>
+            <match-user :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'user'"></match-user>
+            <match-type :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'type'"></match-type>`
         });
 
         app.component('and-selector', {
@@ -1117,39 +1295,142 @@
             </div>`
         });
 
-        app.component('match-content', {
+        const simpleRuleMixin = {
             props: {
                 rule: Object,
                 parent: Object,
                 subIndex: Number,
                 that: Object
             },
+            methods: {
+                onClicked(ev) {
+                    if (ev.shiftKey) {
+                        this.that.deleteRule(this.parent, this.subIndex, ev);
+                    }
+                }
+            }
+        }
+
+        app.component('match-content', {
+            mixins: [simpleRuleMixin],
             template: `
-            <div class="rule-box">
-                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                <span @click="rule.inverse = !rule.inverse">{{ rule.inverse ? '不': '' }}匹配弹幕内容</span>
-                <div class="rule-box-item">
-                    <input v-model="rule.rule" class="rule-input">
-                </div>
+            <div class="simple-rule-box" @click="onClicked">
+                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
+                <input class="rule-box-input" v-model="rule.rule">
             </div>`
         });
 
-        app.component('match-sender', {
-            props: {
-                rule: Object,
-                parent: Object,
-                subIndex: Number,
-                that: Object
-            },
+        app.component('match-uid', {
+            mixins: [simpleRuleMixin],
             template: `
-            <div class="rule-box">
-                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                <span @click="rule.inverse = !rule.inverse">{{ rule.inverse ? '不': '' }}匹配弹幕发送者</span>
-                <div class="rule-box-item">
-                    <input v-model="rule.rule" class="rule-input">
-                </div>
+            <div class="simple-rule-box" @click="onClicked">
+                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
+                <input class="rule-box-input" v-model="rule.rule">
             </div>`
         });
+
+        app.component('match-user', {
+            mixins: [simpleRuleMixin],
+            template: `
+            <div class="simple-rule-box" @click="onClicked">
+                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">昵称{{ rule.inverse ? '不': '' }}是</div>
+                <input class="rule-box-input" v-model="rule.rule">
+            </div>`
+        });
+
+        app.component('match-type', {
+            mixins: [simpleRuleMixin],
+            template: `
+            <div class="simple-rule-box" @click="onClicked">
+                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
+                <select class="rule-box-input" v-model="rule.rule">
+                    <option value="1">普通弹幕</option>
+                    <option value="4">底端弹幕</option>
+                    <option value="5">顶端弹幕</option>
+                    <option value="6">逆向弹幕</option>
+                    <option value="7">精准定位</option>
+                    <option value="8">高级弹幕</option>
+                </select>
+            </div>`
+        });
+
+        app.component('floating-danmaku-window', {
+            props: {
+                selectedDanmakuList: Array
+            },
+            data() {
+                return {
+                    x: 0,
+                    y: 0,
+                    startX: 0,
+                    startY: 0,
+                    startLeft: 0,
+                    startTop: 0,
+                    isDragging: false,
+                    stayAtBottom: true
+                };
+            },
+            computed: {
+                windowStyle() {
+                    return {
+                        top: `${this.y}px`,
+                        left: `${this.x}px`
+                    };
+                }
+            },
+            emits: ['closeButtonClicked'],
+            methods: {
+                closeButtonClicked() {
+                    this.$emit('closeButtonClicked');
+                },
+                mouseDown(e) {
+                    e.preventDefault();
+                    this.startX = e.clientX;
+                    this.startY = e.clientY;
+                    this.startLeft = this.x;
+                    this.startTop = this.y;
+                    this.isDragging = true;
+                },
+                mouseUp() {
+                    this.isDragging = false;
+                },
+                mouseMove(e) {
+                    e.preventDefault();
+                    if (this.isDragging) {
+                        this.x = this.startLeft + e.clientX - this.startX;
+                        this.y = this.startTop + e.clientY - this.startY;
+                    }
+                }
+            },
+            watch: {
+                selectedDanmakuList: {
+                    handler() {
+                        this.$nextTick(() => {
+                            if (this.stayAtBottom) {
+                                console.log('go scroll');
+                                this.$refs.danmakuScroll.scroll({
+                                    top: this.$refs.danmakuScroll.scrollHeight - this.$refs.danmakuScroll.offsetHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        });
+                    },
+                    deep: true
+                }
+            },
+            template: `
+            <div class="floating-danmaku-window" :style="windowStyle" @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp">
+                <div class="floating-danmaku-window-inner">
+                    <button class="floating-delete-button" @click="closeButtonClicked">关闭</button>
+                    <div class="selected-danmaku-list" ref="danmakuScroll">
+                        <div class="danmaku-box" v-for="danmaku in selectedDanmakuList" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
+                            <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.userId }})</div>
+                            <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`
+        })
 
         app.mount('#app');
     </script>
