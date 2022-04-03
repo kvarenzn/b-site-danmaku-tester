@@ -262,23 +262,50 @@
                     return `弹幕${rule.inverse ? '不' : ''}是${DanmakuType[rule.rule]}`;
                 case 'content':
                     return `弹幕内容${rule.inverse ? '不' : ''}匹配/${rule.rule}/`;
-                case 'and': {
+                case 'and':
                     return `(${rule.rules.map(describeRule).join(' 并且 ')})`;
-                }
-                case 'or': {
+                case 'or':
                     return `(${rule.rules.map(describeRule).join(' 或者 ')})`;
-                }
-            }
+            };
         };
+
+        const compileHelper = rule => {
+            switch (rule.type) {
+                case 'uid':
+                    return rule.inverse ? `uid != ${JSON.stringify(rule.rule)}` : `uid == ${JSON.stringify(rule.rule)}`;
+                case 'user':
+                    return rule.inverse ? `user != ${JSON.stringify(rule.rule)}` : `user == ${JSON.stringify(rule.rule)}`;
+                case 'type': {
+                    let rule = +rule.rule;
+                    if (rule == 1) {
+                        return rule.inverse ? 'type > 3' : 'type <= 3';
+                    } else {
+                        return rule.inverse ? `type != ${rule}` : `type == ${rule}`;
+                    }
+                }
+                case 'content':
+                    return `${rule.inverse ? '!' : ''}${RegExp(rule.rule)}.test(content)`;
+                case 'and':
+                    return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('&&')}`;
+                case 'or':
+                    return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('||')}`;
+            };
+        };
+
+
+        const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
+        const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({type: 'or', rules})};`);
     </script>
 </head>
 <body>
-    <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script>
+    <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script> -->
+    <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <div id="app">
         <header>
             <div class="header-title">弹幕测试工具Beta&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈&nbsp;&nbsp;&nbsp;<a href="https://to.meagames.cn">to.meagames.cn</a></div>
+            <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input" @keyup.enter.native="onEnsureClicked">
                 <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
@@ -474,6 +501,40 @@
                 </div>
             </div>
         </dialog>
+        <dialog ref="globalSettingsDialog">
+            <div class="dialog-content">
+                <div class="settings-category">
+                    <div class="category-name">弹幕历史记录设置</div>
+                    <div class="category-content">
+                        <div class="labeled-item">
+                            <div class="labeled-item-label">弹幕列表最多记录</div>
+                            <input class="colored-input-input" v-model="danmakuHistoryCount" type="number">
+                            <div class="labeled-item-right">条弹幕</div>
+                        </div>
+                        <div class="labeled-item">
+                            <div class="labeled-item-label">悬浮窗内最多记录</div>
+                            <input class="colored-input-input" v-model="selectedDanmakuHistoryCount" type="number">
+                            <div class="labeled-item-right">条弹幕</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-category">
+                    <div class="category-name">杂项设置</div>
+                    <div class="category-content">
+                        <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
+                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕' : '保留已屏蔽弹幕' }}</div>
+                            <div class="big-button-description">
+                                {{ deleteIgnoreDanmaku ? '应用规则后，新匹配屏蔽规则的弹幕将被删除，已在弹幕列表中的弹幕将被打上标记' : '所有匹配屏蔽规则的弹幕都将被打上标记' }}
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+                <div class="dialog-big-button" @click="closeGlobalSettings">
+                    <div class="big-button-label">关闭</div>
+                    <div class="big-button-description">设置会在修改时自动保存，现在仅关闭对话框</div>
+                </div>    
+            </div>
+        </dialog>
         <floating-danmaku-window
             :selected-danmaku-list="selectedDanmakuList"
             @close-button-clicked="closeFloatingWindow"
@@ -530,6 +591,7 @@
         .dialog-content {
             display: flex;
             flex-direction: column;
+            row-gap: 10px;
         }
 
         .dialog-big-button {
@@ -687,6 +749,25 @@
             border: rgba(255, 255, 255, 0.4) 1px solid;
         }
 
+        .rect-button {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.4);
+            border: hidden;
+            padding-left: 20px;
+            padding-right: 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .rect-button:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .rect-button:active {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
         .ensure-button {
             color: white;
             background-color: rgba(255, 255, 255, 0.4);
@@ -694,6 +775,14 @@
             padding-left: 20px;
             padding-right: 20px;
             border-radius: 0 10px 10px 0;
+        }
+
+        .ensure-button:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .ensure-button:active {
+            background-color: rgba(255, 255, 255, 0.4);
         }
 
         .main {
@@ -914,6 +1003,13 @@
             flex-grow: 1;
         }
 
+        .labeled-item-right {
+            border-radius: 0 10px 10px 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            color: white;
+        }
+
         .colored-input-input {
             background-color: transparent;
             border: rgba(255, 255, 255, 0.2) 1px solid;
@@ -985,8 +1081,10 @@
                     stayAtBottom: true,
                     floatingWindowOpened: false,
                     selectedDanmakuList: [],
-                    danmakuHistoryCount: 5000,
-                    selectedDanmakuHistoryCount: 300
+                    // global settings
+                    danmakuHistoryCount: 2000,
+                    selectedDanmakuHistoryCount: 200,
+                    deleteIgnoreDanmaku: false
                 };
             },
             methods: {
@@ -1011,15 +1109,19 @@
                                 }
 
                                 for (let member of this.members) {
-                                    if (match({type: 'or', rules: member.rules}, danmaku)) {
-                                        danmaku.member = member;
-                                        if (member.action == 'highlight') {
-                                            if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
-                                                this.selectedDanmakuList.shift();
+                                    if (member.ruleMatcher) {
+                                        if (member.ruleMatcher(danmaku)) {
+                                            danmaku.member = member;
+                                            if (member.action == 'highlight') {
+                                                if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
+                                                    this.selectedDanmakuList.shift();
+                                                }
+                                                this.selectedDanmakuList.push(danmaku);
+                                            } else if (this.deleteIgnoreDanmaku) {
+                                                return;
                                             }
-                                            this.selectedDanmakuList.push(danmaku);
+                                            break;
                                         }
-                                        break;
                                     }
                                 }
                                 if (this.danmakuList.length > this.danmakuHistoryCount) {
@@ -1118,6 +1220,7 @@
                         this.selectedMember.rulesDescription = '空';
                     }
 
+                    this.selectedMember.ruleMatcher = compileRules(this.selectedMember.rules);
                     // rematch all danmaku
                     this.rematchAllRules();
                 },
@@ -1125,7 +1228,10 @@
                     for (let danmaku of this.danmakuList) {
                         danmaku.member = null;
                         for (let member of this.members) {
-                            if (match({type: 'or', rules: member.rules}, danmaku)) {
+                            if (!member.ruleMatcher) {
+                                continue;
+                            }
+                            if (member.ruleMatcher(danmaku)) {
                                 danmaku.member = member;
                                 break;
                             }
@@ -1160,6 +1266,12 @@
                 },
                 closeFloatingWindow() {
                     this.floatingWindowOpened = false;
+                },
+                openGlobalSettings() {
+                    this.$refs.globalSettingsDialog.showModal();
+                },
+                closeGlobalSettings() {
+                    this.$refs.globalSettingsDialog.close();
                 }
             },
             components: {
@@ -1178,6 +1290,15 @@
                 selectedIndex(val) {
                     localStorage.setItem('selectedIndex', val);
                 },
+                danmakuHistoryCount(val) {
+                    localStorage.setItem('danmakuHistoryCount', val);
+                },
+                selectedDanmakuHistoryCount(val) {
+                    localStorage.setItem('selectedDanmakuHistoryCount', val);
+                },
+                deleteIgnoreDanmaku(val) {
+                    localStorage.setItem('deleteIgnoreDanmaku', val);
+                },
                 members: {
                     handler(val) {
                         localStorage.setItem('members', JSON.stringify(val));
@@ -1195,12 +1316,18 @@
                     }
                 };
                 loadData('roomId');
+                loadData('danmakuHistoryCount', v => +v);
+                loadData('selectedDanmakuHistoryCount', v => +v);
+                loadData('deleteIgnoreDanmaku', JSON.parse);
                 loadData('currentOrder', v => +v);
                 loadData('currentRuleId', v => +v);
                 loadData('selectedIndex', v => +v);
                 loadData('members', JSON.parse);
                 if (this.selectedIndex != -1) {
                     this.selectedMember = this.members[this.selectedIndex];
+                }
+                for (let member of this.members) {
+                    member.ruleMatcher = compileRules(member.rules);
                 }
             }
         });
@@ -1407,7 +1534,6 @@
                     handler() {
                         this.$nextTick(() => {
                             if (this.stayAtBottom) {
-                                console.log('go scroll');
                                 this.$refs.danmakuScroll.scroll({
                                     top: this.$refs.danmakuScroll.scrollHeight - this.$refs.danmakuScroll.offsetHeight,
                                     behavior: 'smooth'
