@@ -295,6 +295,87 @@
 
         const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
         const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({type: 'or', rules})};`);
+
+        const encodeRules = settings => {
+            // step 1: object to json
+            let data = JSON.stringify(settings);
+            // step 2: compress json
+            let deflatedData = new Uint8Array(pako.deflate(data).buffer);
+            // step 3: pad string
+            let length = deflatedData.byteLength;
+            let addBytesCount = (3 + (-length % 3)) % 3;
+            let paddedLength = length + addBytesCount;
+            let tail = '';
+            if (addBytesCount > 0) {
+                let addBytes = new Uint8Array(Array.from({length: addBytesCount}).map(_ => 0));
+                let oldData = deflatedData;
+                deflatedData = new Uint8Array(length + addBytesCount);
+                deflatedData.set(oldData);
+                deflatedData.set(addBytes, length);
+                tail = String.fromCharCode(0x3600 - addBytesCount);
+            }
+            // step 4: encode data
+            let result = '';
+            for (let i = 0; i < paddedLength; i += 3) {
+                let code = 0;
+                for (let j = 0; j < 3; j ++) {
+                    code <<= 8;
+                    code += deflatedData[i + j];
+                }
+                let first = code % 4096;
+                let second = code >> 12;
+                result += String.fromCharCode(0x3600 + first);
+                result += String.fromCharCode(0x3600 + second);
+            }
+            // final: return result
+            return '译者注：' + result + tail;
+        };
+
+        const decodeRules = data => {
+            // step 0: check header
+            if (!data.startsWith('译者注：')) {
+                return;
+            }
+            let chopedData = data.slice(4);
+            // step 1: decode data
+            let arr = [];
+            for (let i = 0; i < chopedData.length; i += 2) {
+                let first = chopedData.charCodeAt(i) - 0x3600;
+                let second = chopedData.charCodeAt(i + 1) - 0x3600;
+                let code = (second << 12) + first;
+                let temp = [];
+                for (let j = 0; j < 3; j ++) {
+                    temp.push(code % 0x100);
+                    code >>= 8;
+                }
+                temp.reverse().forEach(v => arr.push(v));
+            }
+            let u8arr = new Uint8Array(arr);
+            // step 2: unpad string
+            let padCount = chopedData.charCodeAt(chopedData.length - 1) - 0x3600;
+            if (padCount < 0) {
+                let realLength = u8arr.byteLength + padCount;
+                u8arr = u8arr.subarray(0, realLength);
+            }
+            // step 3: decompress data
+            let inflatedData = new TextDecoder().decode(pako.inflate(u8arr).buffer);
+            // step 4: parse data
+            let settings = JSON.parse(inflatedData);
+            // final: result result
+            return settings;
+        };
+
+        const decodeRulesEnhanced = data => {
+            let result = '';
+            for (let i = 0; i < data.length; i ++) {
+                let char = data[i];
+                let charCode = data.charCodeAt(i);
+                if ('译者注：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
+                    result += char;
+                }
+            }
+            return decodeRules(result);
+        };
     </script>
 </head>
 <body>
@@ -437,8 +518,6 @@
                                 匹配细则为空
                                 <br/>
                                 请点击右下角的(+)按钮以添加匹配细则
-                                <br/>
-                                按住Shift同时单击某条细则可以删除之
                             </div>
                         </div>
                     </div>
@@ -527,10 +606,68 @@
                         </div> 
                     </div>
                 </div>
+                <div class="settings-category">
+                    <div class="category-name">导入/导出设置</div>
+                    <div class="category-content">
+                        <div class="dialog-big-button" @click="exportSettings">
+                            <div class="big-button-label">导出配置</div>
+                            <div class="big-button-description">将规则设置导出为特定文本格式，便于分享或备份</div>
+                        </div>
+                        <div class="dialog-big-button" @click="importSettings">
+                            <div class="big-button-label">导入配置</div>
+                            <div class="big-button-description">从特定文本格式中导入规则设置，并将现有的配置替换为导入的配置</div>
+                        </div>
+                        <div class="dialog-big-button" @click="importSettingsAdditional">
+                            <div class="big-button-label">导入增量配置</div>
+                            <div class="big-button-description">从特定文本格式中导入规则设置，并将追加到现有的配置中</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="dialog-big-button" @click="closeGlobalSettings">
                     <div class="big-button-label">关闭</div>
                     <div class="big-button-description">设置会在修改时自动保存，现在仅关闭对话框</div>
-                </div>    
+                </div>
+            </div>
+        </dialog>
+        <dialog ref="exportSettingsDialog">
+            <div class="dialog-content">
+                <div class="settings-category">
+                    <div class="category-name">导出结果</div>
+                    <div class="category-content">
+                        <textarea v-model="exportResult"></textarea>
+                    </div>
+                </div>
+                <div class="dialog-big-button" @click="closeExportDialog">
+                    <div class="big-button-label">关闭</div>
+                </div>
+            </div>
+        </dialog>
+        <dialog ref="importSettingsDialog">
+            <div class="dialog-content">
+                <div class="settings-category">
+                    <div class="category-name">从文本导入</div>
+                    <div class="category-content">
+                        <textarea v-model="importData"></textarea>
+                    </div>
+                </div>
+                <div class="dialog-big-button" @click="confirmImport">
+                    <div class="big-button-label">确定</div>
+                    <div class="big-button-description">如果导入失败，将不会有任何事发生</div>
+                </div>
+            </div>
+        </dialog>
+        <dialog ref="importSettingsDialogAdditional">
+            <div class="dialog-content">
+                <div class="settings-category">
+                    <div class="category-name">从文本导入</div>
+                    <div class="category-content">
+                        <textarea v-model="importData"></textarea>
+                    </div>
+                </div>
+                <div class="dialog-big-button" @click="confirmImportAdditional">
+                    <div class="big-button-label">确定</div>
+                    <div class="big-button-description">如果导入失败，将不会有任何事发生</div>
+                </div>
             </div>
         </dialog>
         <floating-danmaku-window
@@ -541,6 +678,15 @@
         </floating-danmaku-window>
     </div>
     <style>
+        textarea {
+            min-width: 40vw;
+            min-height: 40vh;
+            background-color: transparent;
+            color: white;
+            border: hidden;
+            /* border-radius: 10px; */
+        }
+
         .tooltip {
             position: relative;
         }
@@ -662,6 +808,7 @@
             display: flex;
             flex-direction: row;
             justify-content: center;
+            position: relative;
         }
 
         .simple-rule-box:hover {
@@ -1085,7 +1232,10 @@
                     selectedDanmakuHistoryCount: 200,
                     deleteIgnoreDanmaku: false,
                     // temp variables
-                    counters: {}
+                    counters: {},
+                    // export and import settings
+                    exportResult: '',
+                    importData: ''
                 };
             },
             methods: {
@@ -1298,6 +1448,51 @@
                 },
                 closeGlobalSettings() {
                     this.$refs.globalSettingsDialog.close();
+                },
+                exportSettings() {
+                    this.$refs.globalSettingsDialog.close();
+                    this.exportResult = encodeRules(this.members);
+                    this.$refs.exportSettingsDialog.showModal();
+                },
+                closeExportDialog() {
+                    this.$refs.exportSettingsDialog.close();
+                },
+                confirmImport() {
+                    try {
+                        let members = decodeRulesEnhanced(this.importData);
+                        if (members) {
+                            this.members = members;
+                            for (let member of this.members) {
+                                member.ruleMatcher = compileRules(member.rules);
+                            }
+                        }
+                    } catch (e) {
+                    }
+                    this.$refs.importSettingsDialog.close();
+                },
+                confirmImportAdditional() {
+                    try {
+                        let members = decodeRulesEnhanced(this.importData);
+                        if (members) {
+                            for (let member of members) {
+                                member.ruleMatcher = compileRules(member.rules);
+                                member.order = this.currentOrder;
+                                this.currentOrder ++;
+                                this.members.push(member);
+                            }
+                        }
+                    } catch (e) {
+                    }
+                    this.$refs.importSettingsDialogAdditional.close();
+                },
+                importSettings() {
+                    this.$refs.globalSettingsDialog.close();
+                    this.$refs.importSettingsDialog.showModal();
+                },
+                importSettingsAdditional() {
+                    this.$refs.globalSettingsDialog.close();
+                    this.$refs.importSettingsDialogAdditional.showModal();
+
                 }
             },
             components: {
@@ -1458,9 +1653,9 @@
             },
             methods: {
                 onClicked(ev) {
-                    if (ev.shiftKey) {
-                        this.that.deleteRule(this.parent, this.subIndex, ev);
-                    }
+                    // if (ev.shiftKey) {
+                    //     this.that.deleteRule(this.parent, this.subIndex, ev);
+                    // }
                 }
             }
         }
@@ -1469,6 +1664,7 @@
             mixins: [simpleRuleMixin],
             template: `
             <div class="simple-rule-box" @click="onClicked">
+                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
                 <div class="rule-box-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
                 <input class="rule-box-input" v-model="rule.rule">
             </div>`
@@ -1478,6 +1674,7 @@
             mixins: [simpleRuleMixin],
             template: `
             <div class="simple-rule-box" @click="onClicked">
+                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
                 <div class="rule-box-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
                 <input class="rule-box-input" v-model="rule.rule">
             </div>`
@@ -1487,6 +1684,7 @@
             mixins: [simpleRuleMixin],
             template: `
             <div class="simple-rule-box" @click="onClicked">
+                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
                 <div class="rule-box-label" @click="rule.inverse = !rule.inverse">昵称{{ rule.inverse ? '不': '' }}是</div>
                 <input class="rule-box-input" v-model="rule.rule">
             </div>`
@@ -1496,6 +1694,7 @@
             mixins: [simpleRuleMixin],
             template: `
             <div class="simple-rule-box" @click="onClicked">
+                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
                 <div class="rule-box-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
                 <select class="rule-box-input" v-model="rule.rule">
                     <option value="1">普通弹幕</option>
