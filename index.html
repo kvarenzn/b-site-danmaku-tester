@@ -404,14 +404,12 @@
                                 <div class="category-name">行为设置</div>
                                 <div class="category-content">
                                     <div class="labeled-item">
-                                        <div class="labeled-item-label tooltip">弹幕颜色<div class="tooltip-content">可填写任意合法css颜色</div></div>
-                                        <input class="colored-input-input" v-model="selectedMember.style.fontColor">
-                                        <div class="colored-input-color" :style="{ background: selectedMember.style.fontColor }"></div>
+                                        <div class="labeled-item-label">弹幕颜色</div>
+                                        <input class="labeled-item-item" v-model="selectedMember.style.fontColor" type="color">
                                     </div>
                                     <div class="labeled-item">
-                                        <div class="labeled-item-label tooltip">样式背景<div class="tooltip-content">可填写任意合法css颜色</div></div>
-                                        <input class="colored-input-input" v-model="selectedMember.style.backgroundColor">
-                                        <div class="colored-input-color" :style="{ background: selectedMember.style.backgroundColor }"></div>
+                                        <div class="labeled-item-label">样式背景</div>
+                                        <input class="labeled-item-item" v-model="selectedMember.style.backgroundColor" type="color">
                                     </div>
                                 </div>
                             </div>
@@ -1001,6 +999,7 @@
             color: white;
             font-size: large;
             flex-grow: 1;
+            height: auto;
         }
 
         .labeled-item-right {
@@ -1117,6 +1116,13 @@
                                                     this.selectedDanmakuList.shift();
                                                 }
                                                 this.selectedDanmakuList.push(danmaku);
+                                                if (Notification.permission == 'granted') {
+                                                    let notification = new Notification(danmaku.member.name, {
+                                                        tag: danmaku.member.name,
+                                                        body: danmaku.content,
+                                                        actions: []
+                                                    });
+                                                }
                                             } else if (this.deleteIgnoreDanmaku) {
                                                 return;
                                             }
@@ -1144,8 +1150,8 @@
                         rulesDescription: '空',
                         action: 'highlight',
                         style: {
-                            fontColor: 'white',
-                            backgroundColor: 'transparent'
+                            fontColor: '#ffffff',
+                            backgroundColor: '#232323'
                         }
                     });
                     this.currentOrder ++;
@@ -1307,6 +1313,7 @@
                 }
             },
             mounted() {
+                Notification.requestPermission();
                 // try load data from storage
                 const loadData = (name, fn) => {
                     let value = localStorage.getItem(name);
