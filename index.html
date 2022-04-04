@@ -1083,7 +1083,9 @@
                     // global settings
                     danmakuHistoryCount: 2000,
                     selectedDanmakuHistoryCount: 200,
-                    deleteIgnoreDanmaku: false
+                    deleteIgnoreDanmaku: false,
+                    // temp variables
+                    counters: {}
                 };
             },
             methods: {
@@ -1117,10 +1119,28 @@
                                                 }
                                                 this.selectedDanmakuList.push(danmaku);
                                                 if (Notification.permission == 'granted') {
+                                                    // send desktop notification
+                                                    if (navigator.platform === 'Win32') {
+                                                        // try close and resend notification
+                                                        let key = danmaku.member.name + danmaku.member.order;
+                                                        if (this.counters[key] === undefined) {
+                                                            this.counters[key] = 0;
+                                                        }
+                                                        this.counters[key]++;
+                                                        if (this.counters[key] > 80) {
+                                                            let notification = new Notification(danmaku.member.name, {
+                                                                tag: danmaku.member.name,
+                                                                body: danmaku.content
+                                                            });
+                                                            notification.onshow = () => {
+                                                                notification.close();
+                                                            };
+                                                            this.counters[key] = 0;
+                                                        }
+                                                    }
                                                     let notification = new Notification(danmaku.member.name, {
                                                         tag: danmaku.member.name,
                                                         body: danmaku.content,
-                                                        actions: []
                                                     });
                                                 }
                                             } else if (this.deleteIgnoreDanmaku) {
