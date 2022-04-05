@@ -379,12 +379,13 @@
     </script>
 </head>
 <body>
-	 <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script>
+    <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script> -->
+    <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <div id="app">
         <header>
-            <div class="header-title">弹幕测试工具Beta&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈&nbsp;&nbsp;&nbsp;<a href="https://to.meagames.cn">to.meagames.cn</a></div>
+            <div class="header-title">弹幕测试工具Beta v4.5.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈&nbsp;&nbsp;&nbsp;<a href="https://to.meagames.cn">to.meagames.cn</a></div>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input" @keyup.enter.native="onEnsureClicked">
@@ -414,8 +415,8 @@
                 <template v-else>
                     <div v-if="clientRunning" class="notify-text">
                         成功连接直播间
-                        弹幕服务器有少许延迟请耐心等候
                         <br/>
+                        弹幕服务器有少许延迟请耐心等候
                         <br/>
                         如果长时间无响应，请刷新浏览器
                         <br/>
@@ -426,9 +427,9 @@
                         【第一步】
                         <br/>
                         <br/>
-                        请在上方输入直播房间号码
+                        请在上方输入直播房间号码后
                         <br/>
-                        并点击连接
+                        点击连接
                         <br/>
                     </div>
                 </template>
@@ -516,7 +517,7 @@
                             <div v-else class="notify-text">
                                 匹配细则为空
                                 <br/>
-                                请点击右下角的(+)按钮以添加匹配细则
+                                请点击右下角的(+)按钮添加匹配细则
                             </div>
                         </div>
                     </div>
@@ -537,7 +538,7 @@
                 <div class="category-name">要添加的匹配细则是？</div>
                 <div class="category-content">
                     <div class="settings-category">
-                        <div class="category-name">具体规则（点击规则名称可以切换匹配/不匹配）</div>
+                        <div class="category-name">具体细则（点击细则名称可以切换匹配/不匹配）</div>
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('content')">
                                 <div class="big-button-label">匹配弹幕内容</div>
@@ -558,7 +559,7 @@
                         </div>
                     </div>
                     <div class="settings-category">
-                        <div class="category-name">抽象规则组</div>
+                        <div class="category-name">抽象规则组（创建具体细则后可使用鼠标将细则拖入组内）</div>
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('and')">
                                 <div class="big-button-label">“并且”规则组</div>
@@ -598,9 +599,9 @@
                     <div class="category-name">杂项设置</div>
                     <div class="category-content">
                         <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
-                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕' : '保留已屏蔽弹幕' }}</div>
+                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕（开）' : '删除已屏蔽弹幕（关）' }}</div>
                             <div class="big-button-description">
-                                {{ deleteIgnoreDanmaku ? '应用规则后，新匹配屏蔽规则的弹幕将被删除，已在弹幕列表中的弹幕将被打上标记' : '所有匹配屏蔽规则的弹幕都将被打上标记' }}
+                                {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上标记' }}
                             </div>
                         </div> 
                     </div>
@@ -610,21 +611,21 @@
                     <div class="category-content">
                         <div class="dialog-big-button" @click="exportSettings">
                             <div class="big-button-label">导出配置</div>
-                            <div class="big-button-description">将规则设置导出为特定文本格式，便于分享或备份</div>
+                            <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
                         </div>
                         <div class="dialog-big-button" @click="importSettings">
-                            <div class="big-button-label">导入配置</div>
-                            <div class="big-button-description">从特定文本格式中导入规则设置，并将现有的配置替换为导入的配置</div>
+                            <div class="big-button-label">导入并替换配置  <font color="#FF0000"> &nbsp;&nbsp;*导入前注意备份现有规则 </font> </div>
+                            <div class="big-button-description">从“译者注”专用格式中导入规则设置，并将现有的规则替换为导入的规则</div>
                         </div>
                         <div class="dialog-big-button" @click="importSettingsAdditional">
-                            <div class="big-button-label">导入增量配置</div>
-                            <div class="big-button-description">从特定文本格式中导入规则设置，并将追加到现有的配置中</div>
+                            <div class="big-button-label">导入并追加配置</div>
+                            <div class="big-button-description">从“译者注”专用格式中导入规则设置，并将新增的规则追加到现有的规则</div>
                         </div>
                     </div>
                 </div>
                 <div class="dialog-big-button" @click="closeGlobalSettings">
-                    <div class="big-button-label">关闭</div>
-                    <div class="big-button-description">设置会在修改时自动保存，现在仅关闭对话框</div>
+                    <div class="big-button-label">退出设置</div>
+                    <div class="big-button-description">设置会在修改时自动保存，该按钮仅关闭对话框</div>
                 </div>
             </div>
         </dialog>
