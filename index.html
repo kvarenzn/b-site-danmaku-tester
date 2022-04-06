@@ -614,11 +614,11 @@
                             <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
                         </div>
                         <div class="dialog-big-button" @click="importSettings">
-                            <div class="big-button-label">导入并替换配置  <font color="#FF0000"> &nbsp;&nbsp;*导入前注意备份现有规则 </font> </div>
+                            <div class="big-button-label">导入并替换配置<span style='color: red;'>&nbsp;&nbsp;*导入前注意备份现有规则</span></div>
                             <div class="big-button-description">从“译者注”专用格式中导入规则设置，并将现有的规则替换为导入的规则</div>
                         </div>
                         <div class="dialog-big-button" @click="importSettingsAdditional">
-                            <div class="big-button-label">导入并追加配置</div>
+                            <div class="big-button-label">导入并追加配置<span style='color: red;'>&nbsp;&nbsp;*导入后注意检查新旧规则是否冲突</span></div>
                             <div class="big-button-description">从“译者注”专用格式中导入规则设置，并将新增的规则追加到现有的规则</div>
                         </div>
                     </div>
@@ -729,7 +729,6 @@
             border-radius: 10px;
             background-color: #333;
             border:rgba(255, 255, 255, 0.4) 1px solid;
-            box-shadow: rgba(255, 255, 255, 0.4) 1px 1px 1px 1px;
         }
 
         .dialog-content {
@@ -781,7 +780,6 @@
             display: flex;
             padding: 10px;
             border-radius: 10px;
-            box-shadow: rgba(255, 255, 255, 0.2) 1px 1px 2px 0.5px;
             border: rgba(255, 255, 255, 0.2) 1px solid;
             flex-direction: column;
             margin: 5px;
@@ -867,7 +865,6 @@
             min-height: 50px;
             justify-content: space-between;
             background-color: black;
-            box-shadow: black 1px 1px 2px 1px;
         }
 
         .header-title {
@@ -966,7 +963,6 @@
             padding: 10px;
             margin: 5px;
             border: rgba(255, 255, 255, 0.2) 1px solid;
-            box-shadow: rgba(255, 255, 255, 0.2) 1px 1px 1px 1px;
         }
 
         .danmaku-user {
@@ -1030,7 +1026,6 @@
             padding: 10px;
             margin: 5px;
             border: rgba(255, 255, 255, 0.2) 1px solid;
-            box-shadow: rgba(255, 255, 255, 0.2) 1px 1px 1px 1px;
             position: relative;
         }
 
@@ -1184,7 +1179,6 @@
             border-radius: 10px;
             background-color: rgba(0, 0, 0, 0.2);
             border:rgba(255, 255, 255, 0.4) 1px solid;
-            box-shadow: rgba(255, 255, 255, 0.4) 1px 1px 1px 1px;
             height: 50vh;
             width: 33vw;
             display: flex;
