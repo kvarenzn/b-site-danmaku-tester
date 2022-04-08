@@ -459,19 +459,20 @@
                         ghost-class="sortable-ghost-another"
                         item-key="order">
                         <template #item="{element, index}">
-                            <swipe-delete-item @delete-clicked="deleteMember(index)">
-                                <div
-                                    class="member-info-box-vertical"
-                                    @click="selectMember(index)" 
-                                    :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
-                                    <i class="fa-solid fa-align-justify handle" style="color: lightgray; margin: 10px;"></i>
-                                    <div class="member-info-box-inner">
-                                        <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
-                                        <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
-                                    </div>
-                                    <button class="floating-disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
+                            <div
+                                class="member-info-box-vertical"
+                                @click="selectMember(index)" 
+                                :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
+                                <i class="fa-solid fa-align-justify handle" style="color: lightgray; margin: 10px;"></i>
+                                <div class="member-info-box-inner">
+                                    <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
+                                    <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
                                 </div>
-                            </swipe-delete-item>
+                                <div class="floating-area">
+                                    <button class="disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
+                                    <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
+                                </div>
+                            </div>
                         </template>
                     </draggable>
                 </template>
@@ -701,14 +702,18 @@
                 <template v-else>
                     <div class="settings-category">
                         <div class="category-name">导出结果</div>
-                        <div class="category-content" style="position: relative;">
+                        <div class="category-content">
                             <textarea v-model="exportResult" readonly id="export-result"></textarea>
-                            <i class="fa-regular fa-copy copy-button" data-clipboard-target="#export-result"></i>
                         </div>
                     </div>
-                    <div class="dialog-big-button" @click="closeExportDialog">
-                        <div class="big-button-label">关闭</div>
-                    </div>    
+                    <div style="display: flex; column-gap: 10px; justify-content: space-around;">
+                        <div class="dialog-big-button copy-button" data-clipboard-target="#export-result">
+                            <div class="big-button-label">复制到剪贴板</div>
+                        </div>
+                        <div class="dialog-big-button" @click="closeExportDialog" style="flex-grow: 1; flex-basis: 50%;">
+                            <div class="big-button-label">关闭</div>
+                        </div>
+                    </div>
                 </template>
             </div>
         </dialog>
@@ -812,11 +817,8 @@
         }
 
         .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: lightgray;
-            font-size: 30px;
+            flex-grow: 1;
+            flex-basis: 50%;
         }
 
         .tooltip {
@@ -2115,132 +2117,6 @@
                             <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
                         </div>
                     </div>
-                </div>
-            </div>`
-        });
-
-        app.component('swipe-delete-item', {
-            data() {
-                return {
-                    dragging: false,
-                    buttonWidth: 0,
-                    startX: 0,
-                    speed: 0,
-                    translateX: 0,
-                    oldX: null,
-                    oldY: null
-                };
-            },
-            mounted() {
-                this.$nextTick(() => {
-                    this.buttonWidth = this.$refs.deleteButton.offsetWidth + 10;
-                });
-            },
-            computed: {
-                itemStyle() {
-                    return {
-                        transform: `translateX(${this.translateX}px)`,
-                        transition: `all ${this.speed}ms`
-                    };
-                }
-            },
-            emits: ['delete-clicked'],
-            methods: {
-                onTouchStart(e) {
-                    this.oldPoint = e.touches[0];
-                    this.speed = 0;
-                    this.startX = this.translateX;
-                    console.log('onTouchStart');
-                },
-                onTouchMove(e) {
-                    let point = e.touches[0];
-                    let dx = point.pageX - this.oldPoint.pageX;
-                    let dy = point.pageY - this.oldPoint.pageY;
-
-                    // 这块应该有一个判断条件
-
-                    e.preventDefault();
-
-                    dx += this.startX;
-
-                    if (dx < -this.buttonWidth) {
-                        dx = -this.buttonWidth;
-                    } else if (dx > 0) {
-                        dx = 0;
-                    }
-
-                    this.translateX = dx;
-                    console.log('onTouchMove');
-                },
-                onTouchEnd(e) {
-                    let dx = -this.translateX > 30 ? -this.buttonWidth : 0;
-                    this.speed = 300;
-                    this.translateX = dx;
-                    console.log('onTouchEnd');
-                },
-                onMouseDown(e) {
-                    if (!e.target.classList.contains('handle')) {
-                        this.oldX = e.clientX;
-                        this.oldY = e.clientY;
-                        this.speed = 0;
-                        this.startX = this.translateX;
-
-                        this.dragging = true;
-                    }
-                    e.cancelBubble = true;
-                },
-                onMouseMove(e) {
-                    if (!this.dragging) {
-                        return;
-                    }
-
-                    if (!e.buttons || e.target.classList.contains('swipe-delete-content')) {
-                        let dx = -this.translateX > (this.buttonWidth / 2) ? -this.buttonWidth : 0;
-                        this.speed = 300;
-                        this.translateX = dx;
-                        this.dragging = false;
-                        return;
-                    }
-
-                    let dx = e.clientX - this.oldX;
-                    let dy = e.clientY - this.oldY;
-                    // 这块应该有一个判断条件
-
-                    e.preventDefault();
-
-                    dx += this.startX;
-
-                    if (dx < -this.buttonWidth) {
-                        dx = -this.buttonWidth;
-                    } else if (dx > 0) {
-                        dx = 0;
-                    }
-
-                    this.translateX = dx;
-                },
-                onMouseUp(e) {
-                    let dx = -this.translateX > (this.buttonWidth / 2) ? -this.buttonWidth : 0;
-                    this.speed = 300;
-                    this.translateX = dx;
-                    this.dragging = false;
-                },
-                deleteClicked() {
-                    this.$emit('delete-clicked');
-                }
-            },
-            template: `
-            <div class="swipe-delete-item" :style="itemStyle">
-                <div class="swipe-delete-content"
-                    @touchstart="onTouchStart"
-                    @touchmove="onTouchMove"
-                    @touchend="onTouchEnd"
-                    @mousedown="onMouseDown"
-                    @mousemove="onMouseMove"
-                    @mouseup="onMouseUp">
-                    <slot></slot>
-                </div>
-                <div class="swipe-delete-buttons" ref="deleteButton" @click="deleteClicked">
-                    <i class="fa-regular fa-circle-xmark swipe-delete-button"></i>
                 </div>
             </div>`
         });
