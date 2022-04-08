@@ -225,7 +225,7 @@
                     }
                     return false;
                 case 'uid': {
-                    let result = rule.rule == danmaku.userId;
+                    let result = rule.rule == danmaku.uid;
                     return rule.inverse ? !result : result;
                 }
                 case 'user': {
@@ -412,11 +412,11 @@
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
                                 <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
-                                    <div class="danmaku-user" style="text-decoration: line-through;">{{ danmaku.user }} ({{ danmaku.userId }})</div>
-                                    <div class="danmaku-content" style="text-decoration: line-through; color: gray;">{{ danmaku.content }}</div>
+                                    <div class="danmaku-user" style="text-decoration-line: line-through;">{{ danmaku.user }} ({{ danmaku.uid }})</div>
+                                    <div class="danmaku-content" style="text-decoration-line: line-through; color: gray;">{{ danmaku.content }}</div>
                                 </template>
                                 <template v-else>
-                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.userId }})</div>
+                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }})</div>
                                     <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
                                 </template>
                             </div>
@@ -458,10 +458,14 @@
                             <div
                                 class="member-info-box"
                                 @click="selectMember(index)" 
-                                :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
-                                <div class="member-name" :style="{ color: element.style.fontColor }">{{ element.name }}</div>
-                                <div class="member-rules">匹配细则：{{ element.rulesDescription }}</div>
-                                <button class="floating-delete-button" @click="deleteMember(index, $event)">删除</button>
+                                :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }"
+                                ghost-class="another">
+                                <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
+                                <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
+                                <div class="floating-area">
+                                    <button class="disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
+                                    <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
+                                </div>
                             </div>
                         </template>
                     </draggable>
@@ -670,8 +674,8 @@
                                                     @click="exportToggleSelection(index)"
                                                     :style="{background: exportConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
                                                     v-for="(member, index) in members">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor }">{{ member.name }}</div>
-                                                    <div class="member-rules">匹配细则：{{ member.rulesDescription }}</div>
+                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
+                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -730,8 +734,9 @@
                                                     @click="importToggleSelection(index)" 
                                                     :style="{background: importConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
                                                     v-for="(member, index) in importMembers">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor }">{{ member.name }}</div>
-                                                    <div class="member-rules">匹配细则：{{ member.rulesDescription }}</div>
+                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
+                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
+                                                    <button class="floating-disable-button" @click="e => {e.cancelBubble = true, member.enabled = !member.enabled}">{{ member.enabled ? '禁用' : '启用' }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -744,8 +749,9 @@
                                                     class="member-info-box"
                                                     :style="{background: importConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
                                                     v-for="(member, index) in importMembers">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor }">{{ member.name }}</div>
-                                                    <div class="member-rules">匹配细则：{{ member.rulesDescription }}</div>
+                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
+                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
+                                                    <button class="floating-disable-button" @click="member.enabled = !member.enabled">{{ member.enabled ? '禁用' : '启用' }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -761,7 +767,7 @@
                                     </div>
                                     <div class="dialog-big-button" @click="importConfig.replaceRules = !importConfig.replaceRules">
                                         <div class="big-button-label">{{ importConfig.replaceRules ? '替换当前规则' : '追加到现有规则' }}</div>
-                                        <div class="big-button-description">{{ importConfig.replaceRules ? '这将删除现有的全部规则，且不可撤销' : '将保留现有的规则，请在导入后检查是否有规则冲突' }}</div>
+                                        <div class="big-button-description">{{ importConfig.replaceRules ? '这将删除现有的全部规则，且不可撤销' : '将保留现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则将被禁用' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -872,7 +878,7 @@
             font-size: small;
         }
 
-        .sortable-ghost {
+        .sortable-ghost:not([ghost-class="another"]) {
             height: 0;
         }
 
@@ -1147,6 +1153,45 @@
             color:rgba(255, 255, 255, 0.4);
         }
 
+        .floating-area {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            display: flex;
+            flex-direction: row;
+            column-gap: 20px;
+        }
+
+        .delete-button {
+            background-color: transparent;
+            border: red 1px solid;
+            color: red;
+            border-radius: 3px;
+        }
+
+        .delete-button:hover {
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+
+        .delete-button:active {
+            background-color: transparent;
+        }
+
+        .disable-button {
+            background-color: transparent;
+            border: yellow 1px solid;
+            color: yellow;
+            border-radius: 3px;
+        }
+
+        .disable-button:hover {
+            background-color: rgba(255, 255, 0, 0.5);
+        }
+
+        .disable-button:active {
+            background-color: transparent;
+        }
+
         .floating-round-button {
             position: absolute;
             right: 10px;
@@ -1185,6 +1230,42 @@
         }
 
         .floating-delete-button:active {
+            background-color: transparent;
+        }
+
+        .floating-delete-button-below {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            background-color: transparent;
+            border: red 1px solid;
+            color: red;
+            border-radius: 3px;
+        }
+
+        .floating-delete-button-below:hover {
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+
+        .floating-delete-button-below:active {
+            background-color: transparent;
+        }
+
+        .floating-disable-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background-color: transparent;
+            border: yellow 1px solid;
+            color: yellow;
+            border-radius: 3px;
+        }
+
+        .floating-disable-button:hover {
+            background-color: rgba(255, 255, 0, 0.5);
+        }
+
+        .floating-disable-button:active {
             background-color: transparent;
         }
 
@@ -1346,7 +1427,7 @@
                     exportResult: '',
                     // for importing
                     importData: '',
-                    importState: 0,  // 0: input page, 1: 
+                    importState: 0,  // 0: input page, 1: confirm / config page
                     importMembers: [],
                     importConfig: {
                         goToRoom: false,
@@ -1372,14 +1453,14 @@
                                 let danmaku = {
                                     id: this.danmakuList.length,
                                     user: user[1],
-                                    userId: user[0],
+                                    uid: user[0],
                                     type: msg.info[0][1],
                                     content: msg.info[1],
                                     member: null
                                 }
 
                                 for (let member of this.members) {
-                                    if (member.ruleMatcher) {
+                                    if (member.enabled && member.ruleMatcher) {
                                         if (member.ruleMatcher(danmaku)) {
                                             danmaku.member = member;
                                             if (member.action == 'highlight') {
@@ -1438,6 +1519,7 @@
                         rules: [],
                         rulesDescription: '空',
                         action: 'highlight',
+                        enabled: true,
                         style: {
                             fontColor: '#ffffff',
                             backgroundColor: '#232323'
@@ -1523,7 +1605,7 @@
                     for (let danmaku of this.danmakuList) {
                         danmaku.member = null;
                         for (let member of this.members) {
-                            if (!member.ruleMatcher) {
+                            if (!member.enabled || !member.ruleMatcher) {
                                 continue;
                             }
                             if (member.ruleMatcher(danmaku)) {
@@ -1615,6 +1697,12 @@
                     try {
                         let members = decodeRulesEnhanced(this.importData);
                         if (members) {
+                            for (let member of members) {
+                                if (member.action === 'ignore') {
+                                    member.enabled = false;
+                                }
+                            }
+
                             this.importMembers = members;
 
                             if (members.roomId && !isNaN(+members.roomId)) {
@@ -1636,9 +1724,18 @@
                 confirmImport() {
                     if (this.importConfig.goToRoom) {
                         this.roomId = this.importConfig.specificRoomID;
+                        this.onEnsureClicked();
+                        this.clearDanmakuList();
                     }
+
                     if (this.importConfig.replaceRules) {
                         this.clearMembers();
+                    } else {
+                        for (let member of this.members) {
+                            if (member.action === 'ignore') {
+                                member.enabled = false;
+                            }
+                        }
                     }
 
                     let members;
@@ -1712,6 +1809,9 @@
                 }
                 for (let member of this.members) {
                     member.ruleMatcher = compileRules(member.rules);
+                    if (member.enabled === undefined) {
+                        member.enabled = true;
+                    }
                 }
             }
         });
@@ -1938,13 +2038,13 @@
                     <button class="floating-delete-button" @click="closeButtonClicked">关闭</button>
                     <div class="selected-danmaku-list" ref="danmakuScroll">
                         <div class="danmaku-box" v-for="danmaku in selectedDanmakuList" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
-                            <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.userId }})</div>
+                            <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }})</div>
                             <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
                         </div>
                     </div>
                 </div>
             </div>`
-        })
+        });
 
         app.mount('#app');
     </script>
