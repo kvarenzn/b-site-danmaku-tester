@@ -396,7 +396,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <div id="app">
         <header>
-            <div class="header-title">弹幕测试工具Beta v4.5.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈&nbsp;&nbsp;&nbsp;<a href="https://to.meagames.cn">to.meagames.cn</a></div>
+            <div class="header-title">弹幕测试工具Beta v4.8.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈群：1026979836</div>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input" @keyup.enter.native="onEnsureClicked">
@@ -550,10 +550,10 @@
         </div>
         <dialog ref="addRuleDialog">
             <div class="settings-category">
-                <div class="category-name">要添加的匹配细则是？</div>
+                <div class="category-name">要添加的匹配细则详情</div>
                 <div class="category-content">
                     <div class="settings-category">
-                        <div class="category-name">具体细则（点击细则名称可以切换匹配/不匹配）</div>
+                        <div class="category-name">具体细则【选中后点击细则按钮可切换匹配/不匹配】</div>
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('content')">
                                 <div class="big-button-label">匹配弹幕内容</div>
@@ -569,12 +569,12 @@
                             </div>
                             <div class="dialog-big-button" @click="addRule('type')">
                                 <div class="big-button-label">匹配弹幕种类</div>
-                                <div class="big-button-description">只有弹幕种类（如滚动弹幕/底端弹幕）与设置的内容完全相同时才会匹配</div>
+                                <div class="big-button-description">只有弹幕种类【如滚动弹幕/底端弹幕】与设置的内容完全相同时才会匹配</div>
                             </div>
                         </div>
                     </div>
                     <div class="settings-category">
-                        <div class="category-name">抽象规则组（创建具体细则后可使用鼠标将细则拖入组内）</div>
+                        <div class="category-name">抽象规则组【创建具体细则后可使用鼠标将细则拖入该组内】</div>
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('and')">
                                 <div class="big-button-label">“并且”规则组</div>
@@ -611,26 +611,26 @@
                     </div>
                 </div>
                 <div class="settings-category">
-                    <div class="category-name">杂项设置</div>
+                    <div class="category-name">杂项设置【点击按钮可切换】</div>
                     <div class="category-content">
                         <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
-                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕（开）' : '删除已屏蔽弹幕（关）' }}</div>
+                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕【开】' : '删除已屏蔽弹幕【关】' }}</div>
                             <div class="big-button-description">
-                                {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上标记' }}
+                                {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
                             </div>
                         </div> 
                     </div>
                 </div>
                 <div class="settings-category">
-                    <div class="category-name">导入/导出设置</div>
+                    <div class="category-name">导入/导出向导</div>
                     <div class="category-content">
                         <div class="dialog-big-button" @click="exportSettings">
-                            <div class="big-button-label">导出配置</div>
+                            <div class="big-button-label">导出</div>
                             <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
                         </div>
                         <div class="dialog-big-button" @click="importSettings">
-                            <div class="big-button-label">导入配置</div>
-                            <div class="big-button-description">从“译者注”专用格式中导入规则设置</div>
+                            <div class="big-button-label">导入</div>
+                            <div class="big-button-description">从“译者注”专用格式中导入规则，可通过向导选择规则</div>
                         </div>
                     </div>
                 </div>
@@ -644,29 +644,30 @@
             <div class="dialog-content">
                 <template v-if="exportState === 0">
                     <div class="settings-category">
-                        <div class="category-name">导出设置</div>
+                        <div class="category-name">导出向导</div>
                         <div class="category-content">
                             <div class="settings-category">
-                                <div class="category-name">附加直播间号</div>
+                                <div class="category-name">附加直播间号码【点击按钮可切换】</div>
                                 <div class="category-content">
                                     <div class="dialog-big-button" @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
-                                        <div class="big-button-label">附加直播间号信息 ({{ exportConfig.forSpecificRoom ? '开' : '关' }})</div>
-                                        <div class="big-button-description">{{ exportConfig.forSpecificRoom ? '在导出的配置中附加直播间号相关信息，表明此配置适用于特定直播间' : '不在导出的配置中附加直播间号相关信息，表明此配置适用于所有直播间' }}</div>
+                                        <div class="big-button-label">附加直播间号码 【{{ exportConfig.forSpecificRoom ? '开' : '关' }}】</div>
+                                        <div class="big-button-description">{{ exportConfig.forSpecificRoom ? 
+                                            '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
                                     </div>
                                     <div class="labeled-item" v-if="exportConfig.forSpecificRoom">
-                                        <div class="labeled-item-label">直播间号</div>
+                                        <div class="labeled-item-label">直播间号码</div>
                                         <input class="labeled-item-item" v-model="exportConfig.specificRoomID" type="number">
                                     </div>
                                 </div>        
                             </div>
                             <div class="settings-category">
-                                <div class="category-name">要导出哪些规则</div>
+                                <div class="category-name">请选择导出模式【点击按钮可切换】</div>
                                 <div class="category-content">
                                     <div class="dialog-big-button" @click="exportConfig.selectAll = !exportConfig.selectAll">
-                                        <div class="big-button-label">{{ exportConfig.selectAll ? '导出所有规则' : '导出选择的规则' }}</div>
+                                        <div class="big-button-label">{{ exportConfig.selectAll ? '模式：导出所有规则' : '模式：导出选中的规则' }}</div>
                                     </div>
                                     <div class="settings-category" v-if="!exportConfig.selectAll">
-                                        <div class="category-name">选择要导出的规则</div>
+                                        <div class="category-name">请点选要导出的规则，被选中的规则会被高亮显示</div>
                                         <div class="category-content" style="min-height: 300px;">
                                             <div class="scroll-list">
                                                 <div
@@ -705,28 +706,28 @@
             <div class="dialog-content">
                 <template v-if="importState === 0">
                     <div class="settings-category">
-                        <div class="category-name">从文本导入</div>
+                        <div class="category-name">从译者注导入</div>
                         <div class="category-content">
                             <textarea v-model="importData"></textarea>
                         </div>
                     </div>
                     <div class="dialog-big-button" @click="tryParseImportInput">
                         <div class="big-button-label">确定</div>
-                        <div class="big-button-description">尝试解析此配置，如果解析失败，将自动退出</div>
+                        <div class="big-button-description">尝试解析此配置，如解析失败将自动退出此操作</div>
                     </div>
                 </template>
                 <template v-else>
                     <div class="settings-category">
-                        <div class="category-name">导入设置</div>
+                        <div class="category-name">导入向导</div>
                         <div class="category-content">
                             <div class="settings-category">
-                                <div class="category-name">要导入哪些规则</div>
+                                <div class="category-name">选择导入模式【点击按钮可切换】</div>
                                 <div class="category-content">
                                     <div class="dialog-big-button" @click="importConfig.selectAll = !importConfig.selectAll">
-                                        <div class="big-button-label">{{ importConfig.selectAll ? '导入所有规则' : '导入选择的规则' }}</div>
+                                        <div class="big-button-label">{{ importConfig.selectAll ? '模式：导入所有规则' : '模式：导入所选规则' }}</div>
                                     </div>
                                     <div class="settings-category" v-if="!importConfig.selectAll">
-                                        <div class="category-name">选择要导入的规则</div>
+                                        <div class="category-name">请点选要导入的规则，被选中的规则会被高亮显示</div>
                                         <div class="category-content" style="min-height: 300px;">
                                             <div class="scroll-list">
                                                 <div
@@ -742,7 +743,7 @@
                                         </div>
                                     </div>
                                     <div class="settings-category" v-else>
-                                        <div class="category-name">预览规则</div>
+                                        <div class="category-name">本次操作将导入下列全部规则</div>
                                         <div class="category-content" style="min-height: 300px;">
                                             <div class="scroll-list">
                                                 <div
@@ -759,15 +760,15 @@
                                 </div>
                             </div>
                             <div class="settings-category">
-                                <div class="category-name">杂项设置</div>
+                                <div class="category-name">杂项设置【点击按钮可切换：是否跳转直播间&是否追加或者替换当前列表已有规则】</div>
                                 <div class="category-content">
                                     <div class="labeled-item">
-                                        <div class="labeled-item-label" @click="importConfig.goToRoom = !importConfig.goToRoom">{{importConfig.goToRoom ? '' : '不'}}跳转到房间</div>
+                                        <div class="labeled-item-label" @click="importConfig.goToRoom = !importConfig.goToRoom">导入后{{importConfig.goToRoom ? '' : '不'}}跳转直播间</div>
                                         <input class="labeled-item-item" v-model="importConfig.specificRoomID" type="number" :disabled="!importConfig.goToRoom">
                                     </div>
                                     <div class="dialog-big-button" @click="importConfig.replaceRules = !importConfig.replaceRules">
-                                        <div class="big-button-label">{{ importConfig.replaceRules ? '替换当前规则' : '追加到现有规则' }}</div>
-                                        <div class="big-button-description">{{ importConfig.replaceRules ? '这将删除现有的全部规则，且不可撤销' : '将保留现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则将被禁用' }}</div>
+                                        <div class="big-button-label">{{ importConfig.replaceRules ? '模式：替换当前规则' : '模式：追加到现有规则' }}</div>
+                                        <div class="big-button-description">{{ importConfig.replaceRules ? '这将删除导入之前规则列表的全部规则，且不可撤销' : '将保留导入前现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则默认将被禁用' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1159,7 +1160,7 @@
             top: 10px;
             display: flex;
             flex-direction: row;
-            column-gap: 20px;
+            column-gap: 10px;
         }
 
         .delete-button {
