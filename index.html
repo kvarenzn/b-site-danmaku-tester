@@ -388,12 +388,14 @@
             return decodeRules(result);
         };
     </script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script> -->
-    <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script>
+    <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script>
+    <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.10/dist/clipboard.min.js"></script>
     <div id="app">
         <header>
             <div class="header-title">弹幕测试工具Beta v4.8.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈群：1026979836</div>
@@ -450,23 +452,26 @@
                     <draggable
                         :list="members"
                         :component-data="{
-                            class: 'scroll-list'
+                            class: 'scroll-list swipe-delete-outer'
                         }"
                         :group="{ name: 'members' }"
+                        handle=".handle"
+                        ghost-class="sortable-ghost-another"
                         item-key="order">
                         <template #item="{element, index}">
-                            <div
-                                class="member-info-box"
-                                @click="selectMember(index)" 
-                                :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }"
-                                ghost-class="another">
-                                <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
-                                <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
-                                <div class="floating-area">
-                                    <button class="disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
-                                    <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
+                            <swipe-delete-item @delete-clicked="deleteMember(index)">
+                                <div
+                                    class="member-info-box-vertical"
+                                    @click="selectMember(index)" 
+                                    :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
+                                    <i class="fa-solid fa-align-justify handle" style="color: lightgray; margin: 10px;"></i>
+                                    <div class="member-info-box-inner">
+                                        <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
+                                        <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
+                                    </div>
+                                    <button class="floating-disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
                                 </div>
-                            </div>
+                            </swipe-delete-item>
                         </template>
                     </draggable>
                 </template>
@@ -478,7 +483,9 @@
                     <br/>
                     请点击下方的(+)按钮添加规则
                 </div>
-                <button class="floating-round-button" @click="addMember">+</button>
+                <button class="floating-round-button" @click="addMember">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
             <div class="settings-view">
                 <div class="settings-view-inner" v-if="selectedMember">
@@ -545,7 +552,9 @@
                     <br/>
                     请选中规则后在这里设置细则
                 </div>
-                <button v-if="selectedMember" class="floating-round-button" @click="openAddRuleDialog">+</button>
+                <button v-if="selectedMember" class="floating-round-button" @click="openAddRuleDialog">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
         </div>
         <dialog ref="addRuleDialog">
@@ -692,8 +701,9 @@
                 <template v-else>
                     <div class="settings-category">
                         <div class="category-name">导出结果</div>
-                        <div class="category-content">
-                            <textarea v-model="exportResult" readonly></textarea>
+                        <div class="category-content" style="position: relative;">
+                            <textarea v-model="exportResult" readonly id="export-result"></textarea>
+                            <i class="fa-regular fa-copy copy-button" data-clipboard-target="#export-result"></i>
                         </div>
                     </div>
                     <div class="dialog-big-button" @click="closeExportDialog">
@@ -768,7 +778,7 @@
                                     </div>
                                     <div class="dialog-big-button" @click="importConfig.replaceRules = !importConfig.replaceRules">
                                         <div class="big-button-label">{{ importConfig.replaceRules ? '模式：替换当前规则' : '模式：追加到现有规则' }}</div>
-                                        <div class="big-button-description">{{ importConfig.replaceRules ? '这将删除导入之前规则列表的全部规则，且不可撤销' : '将保留导入前现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则默认将被禁用' }}</div>
+                                        <div class="big-button-description" style="color: red">{{ importConfig.replaceRules ? '这将删除导入之前规则列表的全部规则，且不可撤销' : '将保留导入前现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则默认将被禁用' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -799,7 +809,14 @@
             background-color: transparent;
             color: white;
             border: hidden;
-            /* border-radius: 10px; */
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: lightgray;
+            font-size: 30px;
         }
 
         .tooltip {
@@ -879,7 +896,7 @@
             font-size: small;
         }
 
-        .sortable-ghost:not([ghost-class="another"]) {
+        .sortable-ghost {
             height: 0;
         }
 
@@ -1144,6 +1161,26 @@
             position: relative;
         }
 
+        .member-info-box-vertical {
+            display: flex;
+            flex-direction: row;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px;
+            border: rgba(255, 255, 255, 0.2) 1px solid;
+            position: relative;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .member-info-box-inner {
+            padding-left: 10px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex-grow: 1;
+        }
+
         .member-name {
             color: white;
             font-weight: bold;
@@ -1203,8 +1240,7 @@
             height: 60px;
             width: 60px;
             color: white;
-            font-size: 40px;
-            font-weight: bold;
+            font-size: 30px;
             text-align: center;
         }
 
@@ -1392,6 +1428,40 @@
         select option {
             background-color: #222;
         }
+
+        /* swipe delete */
+        .swipe-delete-item {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .swipe-delete-item .swipe-delete-content {
+            flex-grow: 1;
+        }
+
+        .swipe-delete-item .swipe-delete-buttons {
+            display: flex;
+            position: absolute;
+            right: -10px;
+            top: 0;
+            height: 100%;
+            transform: translateX(100%);
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .swipe-delete-item .swipe-delete-button {
+            color: red;
+            font-size: 40px;
+        }
+
+        .swipe-delete-outer {
+            position: relative;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
     </style>
     <script>
         const draggable = vuedraggable;
@@ -1529,7 +1599,9 @@
                     this.currentOrder ++;
                 },
                 deleteMember(index, event) {
-                    event.cancelBubble = true;
+                    if (event) {
+                        event.cancelBubble = true;
+                    }
                     if (index == this.selectedIndex) {
                         this.selectedIndex = -1;
                         this.selectedMember = null;
@@ -2047,10 +2119,136 @@
             </div>`
         });
 
+        app.component('swipe-delete-item', {
+            data() {
+                return {
+                    dragging: false,
+                    buttonWidth: 0,
+                    startX: 0,
+                    speed: 0,
+                    translateX: 0,
+                    oldX: null,
+                    oldY: null
+                };
+            },
+            mounted() {
+                this.$nextTick(() => {
+                    this.buttonWidth = this.$refs.deleteButton.offsetWidth + 10;
+                });
+            },
+            computed: {
+                itemStyle() {
+                    return {
+                        transform: `translateX(${this.translateX}px)`,
+                        transition: `all ${this.speed}ms`
+                    };
+                }
+            },
+            emits: ['delete-clicked'],
+            methods: {
+                onTouchStart(e) {
+                    this.oldPoint = e.touches[0];
+                    this.speed = 0;
+                    this.startX = this.translateX;
+                    console.log('onTouchStart');
+                },
+                onTouchMove(e) {
+                    let point = e.touches[0];
+                    let dx = point.pageX - this.oldPoint.pageX;
+                    let dy = point.pageY - this.oldPoint.pageY;
+
+                    // 这块应该有一个判断条件
+
+                    e.preventDefault();
+
+                    dx += this.startX;
+
+                    if (dx < -this.buttonWidth) {
+                        dx = -this.buttonWidth;
+                    } else if (dx > 0) {
+                        dx = 0;
+                    }
+
+                    this.translateX = dx;
+                    console.log('onTouchMove');
+                },
+                onTouchEnd(e) {
+                    let dx = -this.translateX > 30 ? -this.buttonWidth : 0;
+                    this.speed = 300;
+                    this.translateX = dx;
+                    console.log('onTouchEnd');
+                },
+                onMouseDown(e) {
+                    if (!e.target.classList.contains('handle')) {
+                        this.oldX = e.clientX;
+                        this.oldY = e.clientY;
+                        this.speed = 0;
+                        this.startX = this.translateX;
+
+                        this.dragging = true;
+                    }
+                    e.cancelBubble = true;
+                },
+                onMouseMove(e) {
+                    if (!this.dragging) {
+                        return;
+                    }
+
+                    if (!e.buttons || e.target.classList.contains('swipe-delete-content')) {
+                        let dx = -this.translateX > (this.buttonWidth / 2) ? -this.buttonWidth : 0;
+                        this.speed = 300;
+                        this.translateX = dx;
+                        this.dragging = false;
+                        return;
+                    }
+
+                    let dx = e.clientX - this.oldX;
+                    let dy = e.clientY - this.oldY;
+                    // 这块应该有一个判断条件
+
+                    e.preventDefault();
+
+                    dx += this.startX;
+
+                    if (dx < -this.buttonWidth) {
+                        dx = -this.buttonWidth;
+                    } else if (dx > 0) {
+                        dx = 0;
+                    }
+
+                    this.translateX = dx;
+                },
+                onMouseUp(e) {
+                    let dx = -this.translateX > (this.buttonWidth / 2) ? -this.buttonWidth : 0;
+                    this.speed = 300;
+                    this.translateX = dx;
+                    this.dragging = false;
+                },
+                deleteClicked() {
+                    this.$emit('delete-clicked');
+                }
+            },
+            template: `
+            <div class="swipe-delete-item" :style="itemStyle">
+                <div class="swipe-delete-content"
+                    @touchstart="onTouchStart"
+                    @touchmove="onTouchMove"
+                    @touchend="onTouchEnd"
+                    @mousedown="onMouseDown"
+                    @mousemove="onMouseMove"
+                    @mouseup="onMouseUp">
+                    <slot></slot>
+                </div>
+                <div class="swipe-delete-buttons" ref="deleteButton" @click="deleteClicked">
+                    <i class="fa-regular fa-circle-xmark swipe-delete-button"></i>
+                </div>
+            </div>`
+        });
+
         app.mount('#app');
+
+        const clipboardJS = new ClipboardJS('.copy-button');
     </script>
-    <script>
-    </script>
-    <span style="display:none"><script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script></span>
+    <span style="display:none"><script>document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script></span>
 </body>
 </html>
