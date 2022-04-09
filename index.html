@@ -414,11 +414,11 @@
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
                                 <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
-                                    <div class="danmaku-user" style="text-decoration-line: line-through;">{{ danmaku.user }} ({{ danmaku.uid }})</div>
+                                    <div class="danmaku-user" style="text-decoration-line: line-through;">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
                                     <div class="danmaku-content" style="text-decoration-line: line-through; color: gray;">{{ danmaku.content }}</div>
                                 </template>
                                 <template v-else>
-                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }})</div>
+                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
                                     <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
                                 </template>
                             </div>
@@ -469,7 +469,7 @@
                                     <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
                                 </div>
                                 <div class="floating-area">
-                                    <button class="disable-button" @click="element.enabled = !element.enabled">{{ element.enabled ? '禁用' : '启用' }}</button>
+                                    <button class="disable-button" @click="toggleEnable(element)">{{ element.enabled ? '禁用' : '启用' }}</button>
                                     <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
                                 </div>
                             </div>
@@ -1521,16 +1521,17 @@
                         client.addHandler(msg => {
                             if (msg.cmd == 'DANMU_MSG') {
                                 this.beforeDanmakuUpdate();
-                                
+
                                 let user = msg.info[2];
                                 let danmaku = {
                                     id: this.danmakuList.length,
                                     user: user[1],
                                     uid: user[0],
+                                    time: new Date(msg.info[0][4]).toLocaleString(),
                                     type: msg.info[0][1],
                                     content: msg.info[1],
                                     member: null
-                                }
+                                };
 
                                 for (let member of this.members) {
                                     if (member.enabled && member.ruleMatcher) {
@@ -1690,6 +1691,16 @@
                         }
                     }
                 },
+                toggleEnable(member) {
+                    if (member.enabled) {
+                        member.enabled = false;
+                    } else {
+                        if (!member.ruleMatcher) {
+                            member.ruleMatcher = compileRules(member.rules);
+                        }
+                        member.enabled = true;
+                    }
+                },
                 clearDanmakuList() {
                     this.danmakuList = [];
                 },
@@ -1799,6 +1810,10 @@
                 confirmImport() {
                     if (this.importConfig.goToRoom) {
                         this.roomId = this.importConfig.specificRoomID;
+                        if (this.clientRunning) {
+                            client.stop();
+                            this.clientRunning = false;
+                        }
                         this.onEnsureClicked();
                         this.clearDanmakuList();
                     }
