@@ -533,7 +533,7 @@
                                 item-key="id">
                                 <template #item="{element, index}">
                                     <div class="rule-box-item">
-                                        <match-rule :rule="element" :parent="null" :subIndex="index" :that="this"></match-rule>
+                                        <match-rule :rule="element" :parent="null" :sub-index="index" :that="this"></match-rule>
                                     </div>
                                 </template>
                             </draggable>
@@ -1899,12 +1899,12 @@
                 that: Object
             },
             template: `
-            <and-selector :rule="rule" :parent="parent" :subIndex="subIndex" :that="that" v-if="rule.type === 'and'"></and-selector>
-            <or-selector :rule="rule" :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'or'"></or-selector>
-            <match-content :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'content'"></match-content>
-            <match-uid :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'uid'"></match-uid>
-            <match-user :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'user'"></match-user>
-            <match-type :rule=rule :parent="parent" :subIndex="subIndex" :that="that" v-else-if="rule.type === 'type'"></match-type>`
+            <and-selector :rule="rule" :parent="parent" :sub-index="subIndex" :that="that" v-if="rule.type === 'and'"></and-selector>
+            <or-selector :rule="rule" :parent="parent" :sub-index="subIndex" :that="that" v-else-if="rule.type === 'or'"></or-selector>
+            <match-content :rule=rule :parent="parent" :sub-index="subIndex" :that="that" v-else-if="rule.type === 'content'"></match-content>
+            <match-uid :rule=rule :parent="parent" :sub-index="subIndex" :that="that" v-else-if="rule.type === 'uid'"></match-uid>
+            <match-user :rule=rule :parent="parent" :sub-index="subIndex" :that="that" v-else-if="rule.type === 'user'"></match-user>
+            <match-type :rule=rule :parent="parent" :sub-index="subIndex" :that="that" v-else-if="rule.type === 'type'"></match-type>`
         });
 
         app.component('and-selector', {
@@ -1937,7 +1937,7 @@
                     v-bind="dragOptions">
                     <template #item="{element, index}">
                         <div class="rule-box-item">
-                            <match-rule :rule="element" :parent="rule" :subIndex="index" :that="that"></match-rule>
+                            <match-rule :rule="element" :parent="rule" :sub-index="index" :that="that"></match-rule>
                         </div>
                     </template>
                 </draggable>
@@ -1974,7 +1974,7 @@
                     v-bind="dragOptions">
                     <template #item="{element, index}">
                         <div class="rule-box-item">
-                            <match-rule :rule="element" :parent="rule" :subIndex="index" :that="that"></match-rule>
+                            <match-rule :rule="element" :parent="rule" :sub-index="index" :that="that"></match-rule>
                         </div>
                     </template>
                 </draggable>
