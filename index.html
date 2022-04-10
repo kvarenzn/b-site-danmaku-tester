@@ -399,6 +399,7 @@
     <div id="app">
         <header>
             <div class="header-title">弹幕测试工具Beta v4.8.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈群：1026979836</div>
+            <button class="rect-button" @click="openDocument" style="font-size: larger; font-weight: bold;">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input" @keyup.enter.native="onEnsureClicked">
@@ -1842,6 +1843,9 @@
                     }
 
                     this.closeImportDialog();
+                },
+                openDocument() {
+                    window.open('https://b23.tv/XcAnm9u');
                 }
             },
             components: {
