@@ -269,6 +269,34 @@
             };
         };
 
+        const checkRule = rule => {
+            switch (rule.type) {
+                case 'uid':
+                    if (rule.rule.length != 0 && !isNaN(+rule.rule)) {
+                        return true;
+                    }
+                    return false;
+                case 'user':
+                    return rule.rule.length ? true : false;
+                case 'type':
+                    return true;
+                case 'content':
+                    try {
+                        RegExp(rule.rule);
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                case 'or':
+                case 'and':
+                    if (rule.rules.length <= 0) {
+                        return false;
+                    }
+                    return rule.rules.every(checkRule);
+            }
+            return false;
+        };
+
         const compileHelper = rule => {
             switch (rule.type) {
                 case 'uid':
@@ -286,12 +314,25 @@
                 case 'content':
                     return `${rule.inverse ? '!' : ''}${RegExp(rule.rule)}.test(content)`;
                 case 'and':
-                    return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('&&')}`;
+                    switch (rule.rules.length) {
+                        case 0:
+                            return '';
+                        case 1:
+                            return compileHelper(rule.rules[0]);
+                        default:
+                            return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('&&')}`;
+                    }
                 case 'or':
-                    return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('||')}`;
+                    switch (rule.rules.length) {
+                        case 0:
+                            return '';
+                        case 1:
+                            return compileHelper(rule.rules[0]);
+                        default:
+                            return `${rule.rules.map(compileHelper).map(v => `(${v})`).join('||')}`;
+                    }
             };
         };
-
 
         const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
         const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({type: 'or', rules})};`);
@@ -387,6 +428,8 @@
             }
             return decodeRules(result);
         };
+
+
     </script>
     <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -1513,12 +1556,24 @@
                 };
             },
             methods: {
-                onEnsureClicked() {
+                async onEnsureClicked() {
                     if (this.clientRunning) {
                         client.stop();
                         this.clientRunning = false;
                     } else {
                         let roomId = +this.roomId;
+                        if (isNaN(roomId)) {
+                            return;
+                        }
+                        try {
+                            let result = JSON.parse(await fetch('http://api.danmaku.meagames.cn/' + roomId));
+                            if (!result.error) {
+                                this.roomId = result.roomID;
+                                roomId = +result.roomID;
+                            }
+                        } catch (e) {
+                            console.log('fetch failed');
+                        }
                         client.addHandler(msg => {
                             if (msg.cmd == 'DANMU_MSG') {
                                 this.beforeDanmakuUpdate();
