@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>弹幕测试工具</title>
@@ -41,7 +42,7 @@
 
             removeHandler(handler) {
                 let index = this.handlers.indexOf(handler);
-                if (index >= 0) {                
+                if (index >= 0) {
                     this.handlers.pop(index);
                 }
             }
@@ -71,7 +72,7 @@
 
                 this.heartbeatTimer = setInterval(this.heartbeatWorker.bind(this), 10000);
             }
-            
+
             stop() {
                 this.roomID = undefined;
                 this.handlers = [];
@@ -181,7 +182,7 @@
                     let buffer = await event.data.arrayBuffer();
                     this.processMessage(buffer);
                 } else {
-                    
+
                 }
             }
 
@@ -335,7 +336,7 @@
         };
 
         const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
-        const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({type: 'or', rules})};`);
+        const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({ type: 'or', rules })};`);
 
         const encodeRules = (settings, mode, roomId) => {
             // step 1: object to json
@@ -348,7 +349,7 @@
             let paddedLength = length + addBytesCount;
             let tail = '';
             if (addBytesCount > 0) {
-                let addBytes = new Uint8Array(Array.from({length: addBytesCount}).map(_ => 0));
+                let addBytes = new Uint8Array(Array.from({ length: addBytesCount }).map(_ => 0));
                 let oldData = deflatedData;
                 deflatedData = new Uint8Array(length + addBytesCount);
                 deflatedData.set(oldData);
@@ -359,7 +360,7 @@
             let result = '';
             for (let i = 0; i < paddedLength; i += 3) {
                 let code = 0;
-                for (let j = 0; j < 3; j ++) {
+                for (let j = 0; j < 3; j++) {
                     code <<= 8;
                     code += deflatedData[i + j];
                 }
@@ -371,7 +372,7 @@
             // final: return result
             let headerHeader = mode ? '陶醉' : '译';
             if (typeof roomId === 'undefined') {
-                return  headerHeader + '者注：' + result + tail;
+                return headerHeader + '者注：' + result + tail;
             } else {
                 return `${headerHeader}者注于「${roomId}」：` + result + tail;
             }
@@ -394,7 +395,7 @@
                 let second = chopedData.charCodeAt(i + 1) - 0x3600;
                 let code = (second << 12) + first;
                 let temp = [];
-                for (let j = 0; j < 3; j ++) {
+                for (let j = 0; j < 3; j++) {
                     temp.push(code % 0x100);
                     code >>= 8;
                 }
@@ -421,7 +422,7 @@
 
         const decodeRulesEnhanced = data => {
             let result = '';
-            for (let i = 0; i < data.length; i ++) {
+            for (let i = 0; i < data.length; i++) {
                 let char = data[i];
                 let charCode = data.charCodeAt(i);
                 if ('陶醉译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
@@ -434,38 +435,65 @@
 
     </script>
     <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/style.css">
 </head>
+
 <body>
     <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script>
     <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.10/dist/clipboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
     <div id="app">
-        <header>
-            <div class="header-title">弹幕测试工具Beta v4.8.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*建议反馈群：1026979836</div>
-            <button class="rect-button" @click="openDocument" style="font-size: larger; font-weight: bold;">使用帮助</button>
+        <header v-if="currentMode === 0">
+            <div class="header-title">弹幕测试工具Beta v4.16 "KEKE" build 3</div>
+            <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
-                <input v-model="roomId" placeholder="直播房间号码" class="room-id-input" @keyup.enter.native="onEnsureClicked">
+                <input v-model="roomId" placeholder="直播房间号码" class="room-id-input"
+                    @keyup.enter.native="onEnsureClicked">
                 <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
             </div>
         </header>
         <div class="main">
             <div class="danmaku-view">
+                <div class="floating-area-another auto-hidden" v-if="currentMode === 1">
+                    <button class="round-button" @click="enlargeFontSize">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <button class="round-button" @click="reduceFontSize">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button class="round-button" @click="switchMode(0)">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
                 <template v-if="danmakuList.length">
-                    <button class="floating-delete-button" @click="clearDanmakuList">清空弹幕列表</button>
-                    <button class="floating-open-button" @click="openFloatingWindow" v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button>
+                    <button class="floating-delete-button" @click="clearDanmakuList"
+                        v-if="currentMode === 0">清空弹幕列表</button>
+                    <button class="floating-open-button" @click="openFloatingWindow"
+                        v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button>
                     <div class="scroll-list" ref="danmakuScroll">
                         <div class="danmaku-list-inner">
-                            <div v-for="danmaku in danmakuList" class="danmaku-box" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
+                            <div v-for="danmaku in danmakuList" class="danmaku-box"
+                                :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
                                 <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
-                                    <div class="danmaku-user" style="text-decoration-line: line-through;">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
-                                    <div class="danmaku-content" style="text-decoration-line: line-through; color: gray;">{{ danmaku.content }}</div>
+                                    <div class="danmaku-user" style="text-decoration-line: line-through;">{{
+                                        danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
+                                    <div class="danmaku-content"
+                                        style="text-decoration-line: line-through; color: gray;">{{ danmaku.content }}
+                                    </div>
                                 </template>
                                 <template v-else>
-                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
-                                    <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
+                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}
+                                    </div>
+                                    <div class="danmaku-content"
+                                        :style="danmaku.member ? {
+                                            color: danmaku.member.style.fontColor,
+                                            fontSize: danmakuContentSize
+                                        } : {}">{{
+                                        danmaku.content }}</div>
                                 </template>
                             </div>
                         </div>
@@ -474,57 +502,50 @@
                 <template v-else>
                     <div v-if="clientRunning" class="notify-text">
                         成功连接直播间
-                        <br/>
+                        <br />
                         弹幕服务器有少许延迟请耐心等候
-                        <br/>
+                        <br />
                         如果长时间无响应，请刷新浏览器
-                        <br/>
+                        <br />
                         也有可能是当前直播间无人发言
-                        <br/>
+                        <br />
                     </div>
                     <div v-else class="notify-text">
                         【第一步】
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                         请在上方输入直播房间号码后
-                        <br/>
+                        <br />
                         点击连接
-                        <br/>
+                        <br />
                     </div>
                 </template>
+                <button class="floating-round-button" @click="switchMode(1)" v-if="currentMode === 0">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
             </div>
-            <div class="members-view">
+            <div class="members-view" v-if="currentMode === 0">
                 <template v-if="members.length">
-                    <draggable
-                        :list="members"
-                        :component-data="{
+                    <draggable :list="members" :component-data="{
                             class: 'scroll-list swipe-delete-outer'
-                        }"
-                        :group="{ name: 'members' }"
-                        handle=".handle"
-                        ghost-class="sortable-ghost-another"
+                        }" :group="{ name: 'members' }" handle=".handle" ghost-class="sortable-ghost-another"
                         item-key="order">
                         <template #item="{element, index}">
-                            <div
-                                class="member-info-box-vertical"
-                                @click="selectMember(index)" 
+                            <div class="member-info-box-vertical" @click="selectMember(index)"
                                 :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
                                 <i class="fa-solid fa-align-justify handle" style="color: lightgray; margin: 10px;"></i>
                                 <div class="member-info-box-inner">
-                                    <div 
-                                        class="member-name"
-                                        :style="{
+                                    <div class="member-name" :style="{
                                             color: element.style.fontColor,
-                                            textDecorationLine: (!element.enabled || (element.action === 'ignore' && currentMode === 1)) ? 'line-through' : 'none'
+                                            textDecorationLine: element.enabled ? 'none' : 'line-through'
                                         }">{{ element.name }}</div>
-                                    <div
-                                        class="member-rules"
-                                        :style="{
-                                            textDecorationLine: (!element.enabled || (element.action === 'ignore' && currentMode === 1)) ? 'line-through' : 'none'
+                                    <div class="member-rules" :style="{
+                                            textDecorationLine: element.enabled ? 'none' : 'line-through'
                                         }">匹配细则：{{ element.rulesDescription }}</div>
                                 </div>
-                                <div class="floating-area" v-if="currentMode === 0">
-                                    <button class="disable-button" @click="toggleEnable(element)">{{ element.enabled ? '禁用' : '启用' }}</button>
+                                <div class="floating-area">
+                                    <button class="disable-button" @click="toggleEnable(element)">{{ element.enabled ?
+                                        '禁用' : '启用' }}</button>
                                     <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
                                 </div>
                             </div>
@@ -533,18 +554,18 @@
                 </template>
                 <div v-else class="notify-text">
                     【第二步】
-                    <br/>
-                    <br/>
+                    <br />
+                    <br />
                     弹幕匹配规则为空
-                    <br/>
+                    <br />
                     请点击下方的(+)按钮添加规则
                 </div>
                 <button class="floating-round-button" @click="addMember" v-if="currentMode === 0">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
-            <div class="settings-view">
-                <div class="settings-view-inner" v-if="currentMode === 0 && selectedMember">
+            <div class="settings-view" v-if="currentMode === 0">
+                <div class="settings-view-inner" v-if="selectedMember">
                     <div class="settings-category">
                         <div class="category-name">基础设置</div>
                         <div class="category-content">
@@ -553,7 +574,8 @@
                                 <input class="labeled-item-item" v-model="selectedMember.name">
                             </div>
                             <div class="labeled-item">
-                                <div class="labeled-item-label tooltip">匹配行为<div class="tooltip-content">匹配成功之后的行为</div></div>
+                                <div class="labeled-item-label tooltip">匹配行为<div class="tooltip-content">匹配成功之后的行为</div>
+                                </div>
                                 <select v-model="selectedMember.action" class="labeled-item-item">
                                     <option value="highlight">高亮匹配弹幕</option>
                                     <option value="ignore">屏蔽匹配弹幕</option>
@@ -564,11 +586,13 @@
                                 <div class="category-content">
                                     <div class="labeled-item">
                                         <div class="labeled-item-label">弹幕颜色</div>
-                                        <input class="labeled-item-item" v-model="selectedMember.style.fontColor" type="color">
+                                        <input class="labeled-item-item" v-model="selectedMember.style.fontColor"
+                                            type="color">
                                     </div>
                                     <div class="labeled-item">
                                         <div class="labeled-item-label">样式背景</div>
-                                        <input class="labeled-item-item" v-model="selectedMember.style.backgroundColor" type="color">
+                                        <input class="labeled-item-item" v-model="selectedMember.style.backgroundColor"
+                                            type="color">
                                     </div>
                                 </div>
                             </div>
@@ -578,44 +602,33 @@
                         <button class="floating-apply-button" @click="confirmRules">点击此处使细则生效</button>
                         <div class="category-name">匹配细则</div>
                         <div class="category-content">
-                            <draggable
-                                v-if="selectedMember.rules.length"
-                                :list="selectedMember.rules"
-                                :component-data="{
+                            <draggable v-if="selectedMember.rules.length" :list="selectedMember.rules" :component-data="{
                                     class: 'scroll-list'
-                                }"
-                                :group="{ name: 'rules' }"
-                                item-key="id">
+                                }" :group="{ name: 'rules' }" item-key="id">
                                 <template #item="{element, index}">
                                     <div class="rule-box-item">
-                                        <match-rule :rule="element" :parent="null" :sub-index="index" :that="this"></match-rule>
+                                        <match-rule :rule="element" :parent="null" :sub-index="index" :that="this">
+                                        </match-rule>
                                     </div>
                                 </template>
                             </draggable>
                             <div v-else class="notify-text">
                                 匹配细则为空
-                                <br/>
+                                <br />
                                 请点击右下角的(+)按钮添加匹配细则
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="notify-text" v-else-if="currentMode === 0">
+                <div class="notify-text" v-else>
                     【第三步】
-                    <br/>
-                    <br/>
+                    <br />
+                    <br />
                     未选择匹配规则
-                    <br/>
+                    <br />
                     请选中规则后在这里设置细则
                 </div>
-                <div class="notify-text" v-else>
-                    <div style="color: red">沉浸模式已启用</div>
-                    <br/>
-                    在沉浸模式下无需修改任何规则
-                    <br/>
-                    如果需要增删规则请前往全局设置切换至标准模式
-                </div>
-                <button v-if="currentMode === 0 && selectedMember" class="floating-round-button" @click="openAddRuleDialog">
+                <button v-if="selectedMember" class="floating-round-button" @click="openAddRuleDialog">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
@@ -668,19 +681,6 @@
         <dialog ref="globalSettingsDialog">
             <div class="dialog-content">
                 <div class="settings-category">
-                    <div class="category-name">过滤模式切换</div>
-                    <div class="category-content">
-                        <div class="dialog-big-button" @click="switchMode" v-if="couldSwitchMode">
-                            <div class="big-button-label" :style="{color: ['white', 'red'][currentMode]}">{{ ['标准模式', '沉浸模式 Beta*'][currentMode] }}</div>
-                            <div class="big-button-description">{{ ['显示所有弹幕的模式，可以设置屏蔽规则屏蔽不喜欢的弹幕', '全屏幕显示高亮弹幕并屏蔽所有非高亮规则弹幕，推荐双联屏或者三联屏用户使用。该模式下无法编辑规则，如需修改现有规则，请切换至标准模式'][currentMode] }}</div>
-                        </div>
-                        <div class="dialog-big-button" v-else disabled>
-                            <div class="big-button-label">标准模式</div>
-                            <div class="big-button-description">当前没有任何一条高亮弹幕规则，无法切换模式</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-category">
                     <div class="category-name">弹幕历史记录设置</div>
                     <div class="category-content">
                         <div class="labeled-item">
@@ -703,7 +703,7 @@
                             <div class="big-button-description">
                                 {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
                             </div>
-                        </div> 
+                        </div>
                     </div>
                 </div>
                 <div class="settings-category">
@@ -731,46 +731,54 @@
                     <div class="settings-category">
                         <div class="category-name">导出向导</div>
                         <div class="category-content">
-                        <div class="category-content">    
-                        <div class="category-name">请选择过滤模式【点击下拉可切换】</div>
-                            <div class="labeled-item">
-                                <div class="labeled-item-label">配置模式为</div>
-                                <select v-model="exportConfig.mode" class="labeled-item-item">
-                                    <option value="0">标准模式</option>
-                                    <option value="1">沉浸模式</option>
-                                </select>
-                            </div>
-                            <div class="settings-category">
-                                <div class="category-name">附加直播间号码【点击按钮可切换】</div>
-                                <div class="category-content">
-                                    <div class="dialog-big-button" @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
-                                        <div class="big-button-label">附加直播间号码 【{{ exportConfig.forSpecificRoom ? '开' : '关' }}】</div>
-                                        <div class="big-button-description">{{ exportConfig.forSpecificRoom ? 
-                                            '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
+                            <div class="category-content">
+                                <div class="category-name">请选择过滤模式【点击下拉可切换】</div>
+                                <div class="labeled-item">
+                                    <div class="labeled-item-label">配置模式为</div>
+                                    <select v-model="exportConfig.mode" class="labeled-item-item">
+                                        <option value="0">标准模式</option>
+                                        <option value="1">沉浸模式</option>
+                                    </select>
+                                </div>
+                                <div class="settings-category">
+                                    <div class="category-name">附加直播间号码【点击按钮可切换】</div>
+                                    <div class="category-content">
+                                        <div class="dialog-big-button"
+                                            @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
+                                            <div class="big-button-label">附加直播间号码 【{{ exportConfig.forSpecificRoom ? '开'
+                                                : '关' }}】</div>
+                                            <div class="big-button-description">{{ exportConfig.forSpecificRoom ?
+                                                '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
+                                        </div>
+                                        <div class="labeled-item" v-if="exportConfig.forSpecificRoom">
+                                            <div class="labeled-item-label">直播间号码</div>
+                                            <input class="labeled-item-item" v-model="exportConfig.specificRoomID"
+                                                type="number">
+                                        </div>
                                     </div>
-                                    <div class="labeled-item" v-if="exportConfig.forSpecificRoom">
-                                        <div class="labeled-item-label">直播间号码</div>
-                                        <input class="labeled-item-item" v-model="exportConfig.specificRoomID" type="number">
-                                    </div>
-                                </div>        
-                            </div>
-                            <div class="settings-category">
-                                <div class="category-name">请选择导出模式【点击按钮可切换】</div>
-                                <div class="category-content">
-                                    <div class="dialog-big-button" @click="exportConfig.selectAll = !exportConfig.selectAll">
-                                        <div class="big-button-label">{{ exportConfig.selectAll ? '模式：导出所有规则' : '模式：导出选中的规则' }}</div>
-                                    </div>
-                                    <div class="settings-category" v-if="!exportConfig.selectAll">
-                                        <div class="category-name">请点选要导出的规则，被选中的规则会被高亮显示</div>
-                                        <div class="category-content" style="min-height: 300px;">
-                                            <div class="scroll-list">
-                                                <div
-                                                    class="member-info-box"
-                                                    @click="exportToggleSelection(index)"
-                                                    :style="{background: exportConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
-                                                    v-for="(member, index) in members">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
-                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
+                                </div>
+                                <div class="settings-category">
+                                    <div class="category-name">请选择导出模式【点击按钮可切换】</div>
+                                    <div class="category-content">
+                                        <div class="dialog-big-button"
+                                            @click="exportConfig.selectAll = !exportConfig.selectAll">
+                                            <div class="big-button-label">{{ exportConfig.selectAll ? '模式：导出所有规则' :
+                                                '模式：导出选中的规则' }}</div>
+                                        </div>
+                                        <div class="settings-category" v-if="!exportConfig.selectAll">
+                                            <div class="category-name">请点选要导出的规则，被选中的规则会被高亮显示</div>
+                                            <div class="category-content" style="min-height: 300px;">
+                                                <div class="scroll-list">
+                                                    <div class="member-info-box" @click="exportToggleSelection(index)"
+                                                        :style="{background: exportConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
+                                                        v-for="(member, index) in members">
+                                                        <div class="member-name"
+                                                            :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">
+                                                            {{ member.name }}</div>
+                                                        <div class="member-rules"
+                                                            :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">
+                                                            匹配细则：{{ member.rulesDescription }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -778,10 +786,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="dialog-big-button">
-                        <div class="big-button-label" @click="confirmExport">确认导出</div>
-                    </div>
+                        <div class="dialog-big-button">
+                            <div class="big-button-label" @click="confirmExport">确认导出</div>
+                        </div>
                 </template>
                 <template v-else>
                     <div class="settings-category">
@@ -794,7 +801,8 @@
                         <div class="dialog-big-button copy-button" data-clipboard-target="#export-result">
                             <div class="big-button-label">复制到剪贴板</div>
                         </div>
-                        <div class="dialog-big-button" @click="closeExportDialog" style="flex-grow: 1; flex-basis: 50%;">
+                        <div class="dialog-big-button" @click="closeExportDialog"
+                            style="flex-grow: 1; flex-basis: 50%;">
                             <div class="big-button-label">关闭</div>
                         </div>
                     </div>
@@ -822,21 +830,27 @@
                             <div class="settings-category">
                                 <div class="category-name">选择导入模式【点击按钮可切换】</div>
                                 <div class="category-content">
-                                    <div class="dialog-big-button" @click="importConfig.selectAll = !importConfig.selectAll">
-                                        <div class="big-button-label">{{ importConfig.selectAll ? '模式：导入所有规则' : '模式：导入所选规则' }}</div>
+                                    <div class="dialog-big-button"
+                                        @click="importConfig.selectAll = !importConfig.selectAll">
+                                        <div class="big-button-label">{{ importConfig.selectAll ? '模式：导入所有规则' :
+                                            '模式：导入所选规则' }}</div>
                                     </div>
                                     <div class="settings-category" v-if="!importConfig.selectAll">
                                         <div class="category-name">请点选要导入的规则，被选中的规则会被高亮显示</div>
                                         <div class="category-content" style="min-height: 300px;">
                                             <div class="scroll-list">
-                                                <div
-                                                    class="member-info-box"
-                                                    @click="importToggleSelection(index)" 
+                                                <div class="member-info-box" @click="importToggleSelection(index)"
                                                     :style="{background: importConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
                                                     v-for="(member, index) in importMembers">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
-                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
-                                                    <button class="floating-disable-button" @click="e => {e.cancelBubble = true, member.enabled = !member.enabled}">{{ member.enabled ? '禁用' : '启用' }}</button>
+                                                    <div class="member-name"
+                                                        :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">
+                                                        {{ member.name }}</div>
+                                                    <div class="member-rules"
+                                                        :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">
+                                                        匹配细则：{{ member.rulesDescription }}</div>
+                                                    <button class="floating-disable-button"
+                                                        @click="e => {e.cancelBubble = true, member.enabled = !member.enabled}">{{
+                                                        member.enabled ? '禁用' : '启用' }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -845,13 +859,18 @@
                                         <div class="category-name">本次操作将导入下列全部规则</div>
                                         <div class="category-content" style="min-height: 200px;">
                                             <div class="scroll-list">
-                                                <div
-                                                    class="member-info-box"
+                                                <div class="member-info-box"
                                                     :style="{background: importConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
                                                     v-for="(member, index) in importMembers">
-                                                    <div class="member-name" :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">{{ member.name }}</div>
-                                                    <div class="member-rules" :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">匹配细则：{{ member.rulesDescription }}</div>
-                                                    <button class="floating-disable-button" @click="member.enabled = !member.enabled">{{ member.enabled ? '禁用' : '启用' }}</button>
+                                                    <div class="member-name"
+                                                        :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">
+                                                        {{ member.name }}</div>
+                                                    <div class="member-rules"
+                                                        :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">
+                                                        匹配细则：{{ member.rulesDescription }}</div>
+                                                    <button class="floating-disable-button"
+                                                        @click="member.enabled = !member.enabled">{{ member.enabled ?
+                                                        '禁用' : '启用' }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -869,12 +888,19 @@
                                         </select>
                                     </div>
                                     <div class="labeled-item">
-                                        <div class="labeled-item-label" @click="importConfig.goToRoom = !importConfig.goToRoom">导入后{{importConfig.goToRoom ? '' : '不'}}跳转直播间</div>
-                                        <input class="labeled-item-item" v-model="importConfig.specificRoomID" type="number" :disabled="!importConfig.goToRoom">
+                                        <div class="labeled-item-label"
+                                            @click="importConfig.goToRoom = !importConfig.goToRoom">
+                                            导入后{{importConfig.goToRoom ? '' : '不'}}跳转直播间</div>
+                                        <input class="labeled-item-item" v-model="importConfig.specificRoomID"
+                                            type="number" :disabled="!importConfig.goToRoom">
                                     </div>
-                                    <div class="dialog-big-button" @click="importConfig.replaceRules = !importConfig.replaceRules">
-                                        <div class="big-button-label">{{ importConfig.replaceRules ? '模式：替换当前规则' : '模式：追加到现有规则' }}</div>
-                                        <div class="big-button-description" style="color: red">{{ importConfig.replaceRules ? '这将删除导入之前规则列表的全部规则，且不可撤销' : '将保留导入前现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则默认将被禁用' }}</div>
+                                    <div class="dialog-big-button"
+                                        @click="importConfig.replaceRules = !importConfig.replaceRules">
+                                        <div class="big-button-label">{{ importConfig.replaceRules ? '模式：替换当前规则' :
+                                            '模式：追加到现有规则' }}</div>
+                                        <div class="big-button-description" style="color: red">{{
+                                            importConfig.replaceRules ? '这将删除导入之前规则列表的全部规则，且不可撤销' :
+                                            '将保留导入前现有的规则，请在导入后检查是否有规则冲突，原有的屏蔽类规则默认将被禁用' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -891,11 +917,8 @@
                 </template>
             </div>
         </dialog>
-        <floating-danmaku-window
-            :selected-danmaku-list="selectedDanmakuList"
-            @close-button-clicked="closeFloatingWindow"
-            v-show="floatingWindowOpened"
-            ref="floatingWindow">
+        <floating-danmaku-window :selected-danmaku-list="selectedDanmakuList"
+            @close-button-clicked="closeFloatingWindow" v-show="floatingWindowOpened" ref="floatingWindow">
         </floating-danmaku-window>
     </div>
     <style>
@@ -915,7 +938,7 @@
         .tooltip {
             position: relative;
         }
-        
+
         .tooltip .tooltip-content {
             visibility: hidden;
             background: gray;
@@ -929,12 +952,12 @@
             opacity: 0;
             transition: opacity 0.5s;
         }
-        
+
         .tooltip:hover .tooltip-content {
             visibility: visible;
             opacity: 1;
         }
-        
+
         .popup-dialog-background {
             position: fixed;
             width: 100%;
@@ -953,7 +976,7 @@
         dialog {
             border-radius: 10px;
             background-color: #333;
-            border:rgba(255, 255, 255, 0.4) 1px solid;
+            border: rgba(255, 255, 255, 0.4) 1px solid;
         }
 
         .dialog-content {
@@ -1184,6 +1207,7 @@
 
         .scroll-list {
             overflow-y: scroll;
+            overflow-y: overlay;
             height: 0;
             display: flex;
             flex-direction: column;
@@ -1297,13 +1321,22 @@
         }
 
         .member-rules {
-            color:rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .floating-area {
             position: absolute;
             right: 10px;
             top: 10px;
+            display: flex;
+            flex-direction: row;
+            column-gap: 10px;
+        }
+
+        .floating-area-another {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
             display: flex;
             flex-direction: row;
             column-gap: 10px;
@@ -1337,6 +1370,25 @@
 
         .disable-button:active {
             background-color: transparent;
+        }
+
+        .round-button {
+            background-color: gray;
+            border: hidden;
+            border-radius: 50%;
+            height: 60px;
+            width: 60px;
+            color: white;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        .round-button:hover {
+            background-color: lightgray;
+        }
+
+        .round-button:active {
+            background-color: gray;
         }
 
         .floating-round-button {
@@ -1503,6 +1555,7 @@
 
         .sub-scroll-list {
             overflow-y: scroll;
+            overflow-y: overlay;
             height: 0;
             display: flex;
             flex-direction: column;
@@ -1513,7 +1566,7 @@
             position: fixed;
             border-radius: 10px;
             background-color: rgba(0, 0, 0, 0.2);
-            border:rgba(255, 255, 255, 0.4) 1px solid;
+            border: rgba(255, 255, 255, 0.4) 1px solid;
             height: 50vh;
             width: 33vw;
             display: flex;
@@ -1528,6 +1581,7 @@
 
         .selected-danmaku-list {
             overflow-y: scroll;
+            overflow-y: overlay;
             height: 0;
             flex-grow: 1;
             display: flex;
@@ -1571,10 +1625,40 @@
             overflow-x: hidden;
         }
 
+        /* Chrome scrollbar styles */
+
+        ::-webkit-scrollbar-thumb {
+            background-color: darkgray;
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: lightgray;
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background-color: lightgray;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            background-color: transparent;
+        }
+
+        /* Auto hidden */
+        .auto-hidden {
+            opacity: 0;
+        }
+
+        .auto-hidden:hover {
+            opacity: 1;
+        }
+
     </style>
     <script>
         const draggable = vuedraggable;
         const client = new DanmakuClient();
+        const mosha = window['mosha-vue-toastify'];
         const app = Vue.createApp({
             data() {
                 return {
@@ -1596,6 +1680,7 @@
                     danmakuHistoryCount: 2000,
                     selectedDanmakuHistoryCount: 200,
                     deleteIgnoreDanmaku: false,
+                    danmakuFontSize: 13, // pt
                     // temp variables
                     counters: {},
                     // for exporting
@@ -1625,7 +1710,52 @@
             methods: {
                 switchMode(mode) {
                     mode = (typeof mode === 'object' ? (this.currentMode + 1) % 2 : mode);
-                    // TODO: mode settings
+                    if (mode === 1) {
+                        if (!this.clientRunning) {
+                            mosha.createToast({
+                                title: '无法进入沉浸模式',
+                                description: '请先连接到一个直播间'
+                            }, {
+                                type: 'danger',
+                                timeout: 6000,
+                                hideProgressBar: true,
+                                position: 'top-left'
+                            });
+                            return;
+                        }
+                        this.checkSwitchMode();
+                        if (!this.couldSwitchMode) {
+                            mosha.createToast({
+                                title: '无法进入沉浸模式',
+                                description: '请至少添加一条高亮规则'
+                            }, {
+                                type: 'danger',
+                                timeout: 6000,
+                                hideProgressBar: true,
+                                position: 'top-left'
+                            });
+                            return;
+                        }
+                        // clear all danmaku without highlight
+                        let danmakus = [];
+                        for (let danmaku of this.danmakuList) {
+                            if (danmaku.member && danmaku.member.action === 'highlight') {
+                                danmakus.push(danmaku);
+                            }
+                        }
+                        this.danmakuList = danmakus;
+                        mosha.createToast({
+                            title: '已进入沉浸模式',
+                            description: '鼠标移动至右下角呼出菜单即可退出<br/>点击+/-按钮可调整字体大小<br/>多显示器按下F11全屏网页后显示效果更佳'
+                        }, {
+                            type: 'info',
+                            timeout: 10000,
+                            hideProgressBar: true,
+                            position: 'top-left'
+                        });
+                    } else if (mode === 0) {
+                        this.danmakuFontSize = 13;
+                    }
                     this.currentMode = mode;
                 },
                 async onEnsureClicked() {
@@ -1672,7 +1802,7 @@
                                                     }
                                                     this.selectedDanmakuList.push(danmaku);
                                                 }
-                                                if (Notification.permission == 'granted') {
+                                                if (Notification.permission == 'granted' && this.currentMode === 0) {
                                                     // send desktop notification
                                                     if (navigator.platform === 'Win32') {
                                                         // try close and resend notification
@@ -1732,7 +1862,7 @@
                             backgroundColor: '#232323'
                         }
                     });
-                    this.currentOrder ++;
+                    this.currentOrder++;
                 },
                 deleteMember(index, event) {
                     if (event) {
@@ -1782,7 +1912,7 @@
                             });
                             break;
                     }
-                    this.currentRuleId ++;
+                    this.currentRuleId++;
                     this.closeAddRuleDialog();
                 },
                 deleteRule(parent, subIndex, event) {
@@ -1995,6 +2125,20 @@
                 },
                 openDocument() {
                     window.open('https://b23.tv/XcAnm9u');
+                },
+                enlargeFontSize() {
+                    this.danmakuFontSize ++;
+                },
+                reduceFontSize() {
+                    this.danmakuFontSize --;
+                    if (this.danmakuFontSize < 4) {
+                        this.danmakuFontSize = 4;
+                    }
+                }
+            },
+            computed: {
+                danmakuContentSize() {
+                    return `${this.danmakuFontSize}pt`;
                 }
             },
             components: {
@@ -2032,7 +2176,7 @@
                     deep: true
                 }
             },
-            mounted() {
+            async mounted() {
                 Notification.requestPermission();
                 // try load data from storage
                 const loadData = (name, fn) => {
@@ -2061,6 +2205,10 @@
                     }
                 }
                 this.checkSwitchMode();
+                if (this.currentMode === 1) {
+                    await this.onEnsureClicked();
+                    this.switchMode(1);
+                }
             }
         });
 
@@ -2093,7 +2241,7 @@
             computed: {
                 dragOptions() {
                     return {
-                        group: {name: 'rules'}
+                        group: { name: 'rules' }
                     };
                 }
             },
@@ -2130,7 +2278,7 @@
             computed: {
                 dragOptions() {
                     return {
-                        group: {name: 'rules'}
+                        group: { name: 'rules' }
                     };
                 }
             },
@@ -2298,6 +2446,9 @@
 
         const clipboardJS = new ClipboardJS('.copy-button');
     </script>
-    <span style="display:none"><script>document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script></span>
+    <span style="display:none">
+        <script>document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
+    </span>
 </body>
+
 </html>
