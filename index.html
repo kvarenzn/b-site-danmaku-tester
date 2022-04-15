@@ -337,7 +337,7 @@
         const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
         const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({type: 'or', rules})};`);
 
-        const encodeRules = (settings, roomID) => {
+        const encodeRules = (settings, mode, roomId) => {
             // step 1: object to json
             let data = JSON.stringify(settings);
             // step 2: compress json
@@ -369,20 +369,24 @@
                 result += String.fromCharCode(0x3600 + second);
             }
             // final: return result
-            if (typeof roomID === 'undefined') {
-                return '译者注：' + result + tail;
+            let headerHeader = mode ? '沉浸' : '译';
+            if (typeof roomId === 'undefined') {
+                return  headerHeader + '者注：' + result + tail;
             } else {
-                return `译者注于「${roomID}」：` + result + tail;
+                return `${headerHeader}者注于「${roomId}」：` + result + tail;
             }
         };
 
         const decodeRules = data => {
             // step 0: check header
-            if (!(data.startsWith('译者注：') || /^译者注于「\d+」：/.test(data))) {
+            if (!/^(沉浸|译)者注(?:于「(\d+)」)?：(.+)/.test(data)) {
                 return;
             }
 
-            let chopedData = data.split('：')[1];
+            let mode = RegExp.$1 === '沉浸' ? 1 : 0;
+            let roomId = parseInt(RegExp.$2);
+            let chopedData = RegExp.$3;
+
             // step 1: decode data
             let arr = [];
             for (let i = 0; i < chopedData.length; i += 2) {
@@ -408,13 +412,11 @@
             // step 4: parse data
             let settings = JSON.parse(inflatedData);
             // final: result result
-            if (data.startsWith('译者注：')) {
-                return settings;
-            } else {
-                let header = /^译者注于「(\d+)」：/.exec(data);
-                settings.roomId = header[1];
-                return settings;
+            settings.mode = mode;
+            if (!isNaN(roomId)) {
+                settings.roomId = roomId;
             }
+            return settings;
         };
 
         const decodeRulesEnhanced = data => {
@@ -422,7 +424,7 @@
             for (let i = 0; i < data.length; i ++) {
                 let char = data[i];
                 let charCode = data.charCodeAt(i);
-                if ('译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
+                if ('沉浸译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
                     result += char;
                 }
             }
@@ -453,7 +455,7 @@
             <div class="danmaku-view">
                 <template v-if="danmakuList.length">
                     <button class="floating-delete-button" @click="clearDanmakuList">清空弹幕列表</button>
-                    <button class="floating-open-button" @click="openFloatingWindow" v-if="!floatingWindowOpened">开启弹幕悬浮窗</button>
+                    <button class="floating-open-button" @click="openFloatingWindow" v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button>
                     <div class="scroll-list" ref="danmakuScroll">
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
@@ -509,10 +511,19 @@
                                 :style="{background: index == selectedIndex ? 'rgba(255, 255, 255, 0.3)' : element.style.backgroundColor }">
                                 <i class="fa-solid fa-align-justify handle" style="color: lightgray; margin: 10px;"></i>
                                 <div class="member-info-box-inner">
-                                    <div class="member-name" :style="{ color: element.style.fontColor, textDecorationLine: element.enabled ? 'none' : 'line-through' }">{{ element.name }}</div>
-                                    <div class="member-rules" :style="{textDecorationLine: element.enabled ? 'none' : 'line-through'}">匹配细则：{{ element.rulesDescription }}</div>
+                                    <div 
+                                        class="member-name"
+                                        :style="{
+                                            color: element.style.fontColor,
+                                            textDecorationLine: (!element.enabled || (element.action === 'ignore' && currentMode === 1)) ? 'line-through' : 'none'
+                                        }">{{ element.name }}</div>
+                                    <div
+                                        class="member-rules"
+                                        :style="{
+                                            textDecorationLine: (!element.enabled || (element.action === 'ignore' && currentMode === 1)) ? 'line-through' : 'none'
+                                        }">匹配细则：{{ element.rulesDescription }}</div>
                                 </div>
-                                <div class="floating-area">
+                                <div class="floating-area" v-if="currentMode === 0">
                                     <button class="disable-button" @click="toggleEnable(element)">{{ element.enabled ? '禁用' : '启用' }}</button>
                                     <button class="delete-button" @click="deleteMember(index, $event)">删除</button>
                                 </div>
@@ -528,12 +539,12 @@
                     <br/>
                     请点击下方的(+)按钮添加规则
                 </div>
-                <button class="floating-round-button" @click="addMember">
+                <button class="floating-round-button" @click="addMember" v-if="currentMode === 0">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
             <div class="settings-view">
-                <div class="settings-view-inner" v-if="selectedMember">
+                <div class="settings-view-inner" v-if="currentMode === 0 && selectedMember">
                     <div class="settings-category">
                         <div class="category-name">基础设置</div>
                         <div class="category-content">
@@ -589,7 +600,7 @@
                         </div>
                     </div>
                 </div>
-                <div v-else class="notify-text">
+                <div class="notify-text" v-else-if="currentMode === 0">
                     【第三步】
                     <br/>
                     <br/>
@@ -597,7 +608,14 @@
                     <br/>
                     请选中规则后在这里设置细则
                 </div>
-                <button v-if="selectedMember" class="floating-round-button" @click="openAddRuleDialog">
+                <div class="notify-text" v-else>
+                    <div style="color: red">沉浸模式已启用</div>
+                    <br/>
+                    在沉浸模式下，你不能编辑任何规则
+                    <br/>
+                    要编辑规则，请切换模式至普通模式
+                </div>
+                <button v-if="currentMode === 0 && selectedMember" class="floating-round-button" @click="openAddRuleDialog">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
@@ -650,6 +668,19 @@
         <dialog ref="globalSettingsDialog">
             <div class="dialog-content">
                 <div class="settings-category">
+                    <div class="category-name">模式设置</div>
+                    <div class="category-content">
+                        <div class="dialog-big-button" @click="switchMode" v-if="couldSwitchMode">
+                            <div class="big-button-label" :style="{color: ['white', 'red'][currentMode]}">{{ ['普通模式', '沉浸模式'][currentMode] }}</div>
+                            <div class="big-button-description">{{ ['显示所有弹幕的模式，可以设置屏蔽规则以屏蔽不喜欢的弹幕', '仅显示高亮弹幕的模式，可以理解为白名单模式'][currentMode] }}</div>
+                        </div>
+                        <div class="dialog-big-button" v-else disabled>
+                            <div class="big-button-label">普通模式</div>
+                            <div class="big-button-description">当前没有任何一条高亮弹幕规则，无法切换模式</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-category">
                     <div class="category-name">弹幕历史记录设置</div>
                     <div class="category-content">
                         <div class="labeled-item">
@@ -657,14 +688,14 @@
                             <input class="colored-input-input" v-model="danmakuHistoryCount" type="number">
                             <div class="labeled-item-right">条弹幕</div>
                         </div>
-                        <div class="labeled-item">
+                        <div class="labeled-item" v-if="currentMode === 0">
                             <div class="labeled-item-label">悬浮窗内最多记录</div>
                             <input class="colored-input-input" v-model="selectedDanmakuHistoryCount" type="number">
                             <div class="labeled-item-right">条弹幕</div>
                         </div>
                     </div>
                 </div>
-                <div class="settings-category">
+                <div class="settings-category" v-if="currentMode === 0">
                     <div class="category-name">杂项设置【点击按钮可切换】</div>
                     <div class="category-content">
                         <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
@@ -676,9 +707,9 @@
                     </div>
                 </div>
                 <div class="settings-category">
-                    <div class="category-name">导入/导出向导</div>
+                    <div class="category-name">{{ members.length ? '导入/导出向导' : '导入向导' }}</div>
                     <div class="category-content">
-                        <div class="dialog-big-button" @click="exportSettings">
+                        <div class="dialog-big-button" @click="exportSettings" v-if="members.length">
                             <div class="big-button-label">导出</div>
                             <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
                         </div>
@@ -700,6 +731,13 @@
                     <div class="settings-category">
                         <div class="category-name">导出向导</div>
                         <div class="category-content">
+                            <div class="labeled-item">
+                                <div class="labeled-item-label">将本份配置用于</div>
+                                <select v-model="exportConfig.mode" class="labeled-item-item">
+                                    <option value="0">普通模式</option>
+                                    <option value="1">沉浸模式</option>
+                                </select>
+                            </div>
                             <div class="settings-category">
                                 <div class="category-name">附加直播间号码【点击按钮可切换】</div>
                                 <div class="category-content">
@@ -803,7 +841,7 @@
                                     </div>
                                     <div class="settings-category" v-else>
                                         <div class="category-name">本次操作将导入下列全部规则</div>
-                                        <div class="category-content" style="min-height: 300px;">
+                                        <div class="category-content" style="min-height: 200px;">
                                             <div class="scroll-list">
                                                 <div
                                                     class="member-info-box"
@@ -821,6 +859,13 @@
                             <div class="settings-category">
                                 <div class="category-name">杂项设置【点击按钮可切换：是否跳转直播间&是否追加或者替换当前列表已有规则】</div>
                                 <div class="category-content">
+                                    <div class="labeled-item">
+                                        <div class="labeled-item-label">导入后切换模式到</div>
+                                        <select v-model="importConfig.switchToMode" class="labeled-item-item">
+                                            <option value="0">普通模式</option>
+                                            <option value="1">沉浸模式</option>
+                                        </select>
+                                    </div>
                                     <div class="labeled-item">
                                         <div class="labeled-item-label" @click="importConfig.goToRoom = !importConfig.goToRoom">导入后{{importConfig.goToRoom ? '' : '不'}}跳转直播间</div>
                                         <input class="labeled-item-item" v-model="importConfig.specificRoomID" type="number" :disabled="!importConfig.goToRoom">
@@ -913,6 +958,22 @@
             display: flex;
             flex-direction: column;
             row-gap: 10px;
+        }
+
+        .dialog-big-button[disabled] {
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+            border: rgba(255, 255, 255, 0.4) 1px solid;
+            padding: 10px;
+        }
+
+        .dialog-big-button[disabled]:hover {
+            background-color: transparent;
+        }
+
+        .dialog-big-button[disabled]:active {
+            background-color: transparent;
         }
 
         .dialog-big-button {
@@ -1528,6 +1589,8 @@
                     floatingWindowOpened: false,
                     selectedDanmakuList: [],
                     // global settings
+                    couldSwitchMode: false,
+                    currentMode: 0, // 0: normal mode, 1: immersion mode, 2: (lyric mode ?)
                     danmakuHistoryCount: 2000,
                     selectedDanmakuHistoryCount: 200,
                     deleteIgnoreDanmaku: false,
@@ -1536,6 +1599,7 @@
                     // for exporting
                     exportState: 0,  // 0: config page, 1: result page
                     exportConfig: {
+                        mode: 0,
                         forSpecificRoom: false,
                         specificRoomID: '',
                         selectAll: true,
@@ -1547,6 +1611,7 @@
                     importState: 0,  // 0: input page, 1: confirm / config page
                     importMembers: [],
                     importConfig: {
+                        switchToMode: 0,
                         goToRoom: false,
                         specificRoomID: '',
                         selectAll: true,
@@ -1556,6 +1621,11 @@
                 };
             },
             methods: {
+                switchMode(mode) {
+                    mode = (typeof mode === 'object' ? (this.currentMode + 1) % 2 : mode);
+                    // TODO: mode settings
+                    this.currentMode = mode;
+                },
                 async onEnsureClicked() {
                     if (this.clientRunning) {
                         client.stop();
@@ -1594,10 +1664,12 @@
                                         if (member.ruleMatcher(danmaku)) {
                                             danmaku.member = member;
                                             if (member.action == 'highlight') {
-                                                if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
-                                                    this.selectedDanmakuList.shift();
+                                                if (this.currentMode === 0) {
+                                                    if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
+                                                        this.selectedDanmakuList.shift();
+                                                    }
+                                                    this.selectedDanmakuList.push(danmaku);
                                                 }
-                                                this.selectedDanmakuList.push(danmaku);
                                                 if (Notification.permission == 'granted') {
                                                     // send desktop notification
                                                     if (navigator.platform === 'Win32') {
@@ -1625,17 +1697,20 @@
                                                 }
                                             } else if (this.deleteIgnoreDanmaku) {
                                                 return;
+                                            } else if (this.currentMode === 1) {
+                                                continue;
                                             }
                                             break;
                                         }
                                     }
                                 }
-                                if (this.danmakuList.length > this.danmakuHistoryCount) {
-                                    this.danmakuList.shift();
+                                if (this.currentMode === 0 || (this.currentMode === 1 && danmaku.member)) {
+                                    if (this.danmakuList.length > this.danmakuHistoryCount) {
+                                        this.danmakuList.shift();
+                                    }
+                                    this.danmakuList.push(danmaku);
+                                    this.afterDanmakuUpdate();
                                 }
-                                this.danmakuList.push(danmaku);
-                                
-                                this.afterDanmakuUpdate();
                             }
                         });
                         client.start(roomId);
@@ -1791,7 +1866,20 @@
                 closeFloatingWindow() {
                     this.floatingWindowOpened = false;
                 },
+                checkSwitchMode() {
+                    this.couldSwitchMode = false;
+                    for (let member of this.members) {
+                        if (member.action === 'highlight') {
+                            this.couldSwitchMode = true;
+                            return;
+                        }
+                    }
+                    if (this.currentMode !== 0) {
+                        this.currentMode = 0;
+                    }
+                },
                 openGlobalSettings() {
+                    this.checkSwitchMode();
                     this.$refs.globalSettingsDialog.showModal();
                 },
                 closeGlobalSettings() {
@@ -1800,6 +1888,7 @@
                 exportSettings() {
                     this.$refs.globalSettingsDialog.close();
                     this.exportState = 0;
+                    this.exportConfig.mode = this.currentMode;
                     this.exportConfig.specificRoomID = this.roomId;
                     this.exportConfig.selection = this.members.map(_ => false);
                     this.$refs.exportSettingsDialog.showModal();
@@ -1814,9 +1903,9 @@
                     }
 
                     if (this.exportConfig.forSpecificRoom && !isNaN(+this.exportConfig.specificRoomID)) {
-                        this.exportResult = encodeRules(members, +this.exportConfig.specificRoomID);
+                        this.exportResult = encodeRules(members, +this.exportConfig.mode, +this.exportConfig.specificRoomID);
                     } else {
-                        this.exportResult = encodeRules(members);
+                        this.exportResult = encodeRules(members, +this.exportConfig.mode);
                     }
 
                     this.exportState = 1;
@@ -1852,6 +1941,7 @@
                                 this.importConfig.specificRoomID = members.roomId;
                             }
                             this.importConfig.selection = members.map(_ => false);
+                            this.importConfig.switchToMode = members.mode;
                             this.importState = 1;
                         } else {
                             throw void 0;
@@ -1897,6 +1987,8 @@
                         this.members.push(member);
                     }
 
+                    this.switchMode(+this.importConfig.switchToMode);
+
                     this.closeImportDialog();
                 },
                 openDocument() {
@@ -1907,6 +1999,9 @@
                 draggable
             },
             watch: {
+                currentMode(val) {
+                    localStorage.setItem('currentMode', val);
+                },
                 roomId(val) {
                     localStorage.setItem('roomId', val);
                 },
@@ -1945,6 +2040,7 @@
                         this[name] = fn(value);
                     }
                 };
+                loadData('currentMode', v => +v);
                 loadData('roomId');
                 loadData('danmakuHistoryCount', v => +v);
                 loadData('selectedDanmakuHistoryCount', v => +v);
@@ -1962,6 +2058,7 @@
                         member.enabled = true;
                     }
                 }
+                this.checkSwitchMode();
             }
         });
 
