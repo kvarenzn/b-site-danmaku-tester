@@ -369,7 +369,7 @@
                 result += String.fromCharCode(0x3600 + second);
             }
             // final: return result
-            let headerHeader = mode ? '沉浸' : '译';
+            let headerHeader = mode ? '陶醉' : '译';
             if (typeof roomId === 'undefined') {
                 return  headerHeader + '者注：' + result + tail;
             } else {
@@ -379,11 +379,11 @@
 
         const decodeRules = data => {
             // step 0: check header
-            if (!/^(沉浸|译)者注(?:于「(\d+)」)?：(.+)/.test(data)) {
+            if (!/^(陶醉|译)者注(?:于「(\d+)」)?：(.+)/.test(data)) {
                 return;
             }
 
-            let mode = RegExp.$1 === '沉浸' ? 1 : 0;
+            let mode = RegExp.$1 === '陶醉' ? 1 : 0;
             let roomId = parseInt(RegExp.$2);
             let chopedData = RegExp.$3;
 
@@ -424,7 +424,7 @@
             for (let i = 0; i < data.length; i ++) {
                 let char = data[i];
                 let charCode = data.charCodeAt(i);
-                if ('沉浸译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
+                if ('陶醉译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
                     result += char;
                 }
             }
@@ -611,9 +611,9 @@
                 <div class="notify-text" v-else>
                     <div style="color: red">沉浸模式已启用</div>
                     <br/>
-                    在沉浸模式下，你不能编辑任何规则
+                    在沉浸模式下无需修改任何规则
                     <br/>
-                    要编辑规则，请切换模式至普通模式
+                    如果需要增删规则请前往全局设置切换至标准模式
                 </div>
                 <button v-if="currentMode === 0 && selectedMember" class="floating-round-button" @click="openAddRuleDialog">
                     <i class="fa-solid fa-plus"></i>
@@ -668,14 +668,14 @@
         <dialog ref="globalSettingsDialog">
             <div class="dialog-content">
                 <div class="settings-category">
-                    <div class="category-name">模式设置</div>
+                    <div class="category-name">过滤模式切换</div>
                     <div class="category-content">
                         <div class="dialog-big-button" @click="switchMode" v-if="couldSwitchMode">
-                            <div class="big-button-label" :style="{color: ['white', 'red'][currentMode]}">{{ ['普通模式', '沉浸模式'][currentMode] }}</div>
-                            <div class="big-button-description">{{ ['显示所有弹幕的模式，可以设置屏蔽规则以屏蔽不喜欢的弹幕', '仅显示高亮弹幕的模式，可以理解为白名单模式'][currentMode] }}</div>
+                            <div class="big-button-label" :style="{color: ['white', 'red'][currentMode]}">{{ ['标准模式', '沉浸模式 Beta*'][currentMode] }}</div>
+                            <div class="big-button-description">{{ ['显示所有弹幕的模式，可以设置屏蔽规则屏蔽不喜欢的弹幕', '全屏幕显示高亮弹幕并屏蔽所有非高亮规则弹幕，推荐双联屏或者三联屏用户使用。该模式下无法编辑规则，如需修改现有规则，请切换至标准模式'][currentMode] }}</div>
                         </div>
                         <div class="dialog-big-button" v-else disabled>
-                            <div class="big-button-label">普通模式</div>
+                            <div class="big-button-label">标准模式</div>
                             <div class="big-button-description">当前没有任何一条高亮弹幕规则，无法切换模式</div>
                         </div>
                     </div>
@@ -731,10 +731,12 @@
                     <div class="settings-category">
                         <div class="category-name">导出向导</div>
                         <div class="category-content">
+                        <div class="category-content">    
+                        <div class="category-name">请选择过滤模式【点击下拉可切换】</div>
                             <div class="labeled-item">
-                                <div class="labeled-item-label">将本份配置用于</div>
+                                <div class="labeled-item-label">配置模式为</div>
                                 <select v-model="exportConfig.mode" class="labeled-item-item">
-                                    <option value="0">普通模式</option>
+                                    <option value="0">标准模式</option>
                                     <option value="1">沉浸模式</option>
                                 </select>
                             </div>
@@ -862,7 +864,7 @@
                                     <div class="labeled-item">
                                         <div class="labeled-item-label">导入后切换模式到</div>
                                         <select v-model="importConfig.switchToMode" class="labeled-item-item">
-                                            <option value="0">普通模式</option>
+                                            <option value="0">标准模式</option>
                                             <option value="1">沉浸模式</option>
                                         </select>
                                     </div>
