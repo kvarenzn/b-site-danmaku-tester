@@ -447,7 +447,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">弹幕测试工具Beta v4.16 "KEKE" build 3</div>
+            <div class="header-title">弹幕测试工具Beta v4.16 "KEKE" build 3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.firefox.com.cn/" style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
@@ -1137,6 +1137,7 @@
             margin-left: 15%;
             color: white;
             font-size: larger;
+            text-decoration: none
         }
 
         .input-with-button {
@@ -1714,7 +1715,7 @@
                         if (!this.clientRunning) {
                             mosha.createToast({
                                 title: '无法进入沉浸模式',
-                                description: '请先连接到一个直播间'
+                                description: '先连接个直播间吧'
                             }, {
                                 type: 'danger',
                                 timeout: 6000,
@@ -1727,7 +1728,7 @@
                         if (!this.couldSwitchMode) {
                             mosha.createToast({
                                 title: '无法进入沉浸模式',
-                                description: '请至少添加一条高亮规则'
+                                description: '至少添加一条高亮规则吧'
                             }, {
                                 type: 'danger',
                                 timeout: 6000,
@@ -1745,11 +1746,11 @@
                         }
                         this.danmakuList = danmakus;
                         mosha.createToast({
-                            title: '已进入沉浸模式',
-                            description: '鼠标移动至右下角呼出菜单即可退出<br/>点击+/-按钮可调整字体大小<br/>多显示器按下F11全屏网页后显示效果更佳'
+                            title: '请注意：沉浸模式已激活',
+                            description: '该模式下弹幕池仅显示规则中已有的高亮弹幕<br/>鼠标移动至右下角呼出菜单即可退出<br/>点击＋/－按钮可调整字体大小<br/>多显示器按下F11全屏网页后显示效果更佳'
                         }, {
                             type: 'info',
-                            timeout: 10000,
+                            timeout: 15000,
                             hideProgressBar: true,
                             position: 'top-left'
                         });
