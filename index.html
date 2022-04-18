@@ -420,27 +420,27 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         const memberToStyle = member => ({
             name: member.name,
-            fontName: 'Arial',
-            fontSize: 20,
+            fontName: '微软雅黑',
+            fontSize: 90,
             primaryColor: '#ffffff',
             secondaryColor: '#ff0000',
             outlineColor: member.style.fontColor,
             backColor: member.style.backgroundColor,
-            bold: 0,
-            italic: 0,
-            underline: 0,
-            strikeOut: 0,
+            bold: true,
+            italic: false,
+            underline: false,
+            strikeOut: false,
             scaleX: 100,
             scaleY: 100,
             spacing: 0,
             angle: 0,
             borderStyle: 1,
-            outline: 2,
+            outline: 4,
             shadow: 2,
             alignment: 2,
             marginL: 10,
             marginR: 10,
-            marginV: 10
+            marginV: 30
         });
 
         const pad2 = number => String(number).padStart(2, '0');
@@ -476,7 +476,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">弹幕测试工具 v4.18 "JELLY" build 1&nbsp;&nbsp;&nbsp;*推荐使用<a
+            <div class="header-title">弹幕测试工具 v4.18 "JELLY" build 4&nbsp;&nbsp;&nbsp;*推荐使用<a
                     href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
@@ -515,13 +515,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 @click="selectDanmaku(danmaku)">
                                 <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
                                     <div class="danmaku-user" style="text-decoration-line: line-through;">{{
-                                        danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}</div>
+                                        danmaku.user }} ({{ danmaku.uid }}) @{{ roomLiving > 0 ?
+                                        convertTimestamp(danmaku.timestamp - livingStart) : danmaku.time }}</div>
                                     <div class="danmaku-content"
                                         style="text-decoration-line: line-through; color: gray;">{{ danmaku.content }}
                                     </div>
                                 </template>
                                 <template v-else>
-                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ danmaku.time }}
+                                    <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }}) @{{ roomLiving > 0
+                                        ? convertTimestamp(danmaku.timestamp - livingStart) : danmaku.time }}
                                     </div>
                                     <div class="danmaku-content" :style="danmaku.member ? {
                                             color: danmaku.member.style.fontColor,
@@ -1159,7 +1161,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <div class="export-style-list">
                             <div class="dialog-big-button" @click="editStyle(member)"
                                 v-for="member in exportMembersList">
-                                <div class="big-button-label" :style="calcPreviewStyle(exportedStyles[member.name])">{{ member.name }}</div>
+                                <div class="big-button-label" :style="calcPreviewStyle(exportedStyles[member.name])">{{
+                                    member.name }}</div>
                             </div>
                         </div>
                     </div>
@@ -2126,7 +2129,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             return;
                         }
                         try {
-                            let result = await (await fetch('http://api.danmaku.meagames.cn/' + roomId)).json();
+                            let result = await (await fetch('https://api.danmaku.meagames.cn/' + roomId)).json();
                             if (!result.error) {
                                 let data = result.data;
                                 if (roomId != data.room_id) {
@@ -2140,13 +2143,21 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 }
                                 this.roomId = data.room_id;
                                 this.roomLiving = data.live_status;
-                                this.livingStart = data.live_time;
+                                this.livingStart = data.live_time * 1000;
                                 if (this.roomLiving <= 0) {
                                     mosha.createToast({
                                         title: '直播间未开播',
                                         description: '当前直播间未开播，接收到的弹幕只是虚空聊天'
                                     }, {
                                         type: 'warning',
+                                        hideProgressBar: true
+                                    });
+                                } else {
+                                    mosha.createToast({
+                                        title: '已成功连接到直播',
+                                        description: `开播时间：${new Date(this.livingStart).toLocaleString()}`
+                                    }, {
+                                        type: 'info',
                                         hideProgressBar: true
                                     });
                                 }
@@ -2188,7 +2199,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                                 if (this.recordingDanmaku) {
                                                     this.recordDanmakuList.push(danmaku);
                                                 }
-                                                if (Notification.permission == 'granted' && this.currentMode === 0) {
+                                                if (Notification.permission === 'granted' && this.currentMode === 0) {
                                                     // send desktop notification
                                                     if (navigator.platform === 'Win32') {
                                                         // try close and resend notification
@@ -2229,6 +2240,23 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     this.danmakuList.push(danmaku);
                                     this.afterDanmakuUpdate();
                                 }
+                            } else if (msg.cmd === 'LIVE') {
+                                this.livingStart = msg.live_time * 1000;
+                                this.roomLiving = 1;
+                                mosha.createToast({
+                                    title: '主播已开播',
+                                    description: `开播时间: ${new Date(this.livingStart).toLocaleDateString()}`
+                                }, {
+                                    type: 'info',
+                                    hideProgressBar: true
+                                });
+                            } else if (msg.cmd === 'PREPARING') {
+                                mosha.createToast({
+                                    title: '主播已下播'
+                                }, {
+                                    type: 'info',
+                                    hideProgressBar: true
+                                });
                             }
                         });
                         client.start(roomId);
@@ -2261,7 +2289,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     let member = this.members[index];
                     this.members.splice(index, 1);
                     for (let danmaku of this.danmakuList) {
-                        if (danmaku.member.order == member.order) {
+                        if (danmaku.member && danmaku.member.order == member.order) {
                             danmaku.member = null;
                         }
                     }
@@ -2638,7 +2666,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
                     result += '\n' + EVENT_HEADER;
 
-                    let startTime = this.livingStart * 1000;
+                    let startTime = this.livingStart;
 
                     for (let i = 0; i < this.recordDanmakuList.length; i++) {
                         let danmaku = this.recordDanmakuList[i];
@@ -2687,6 +2715,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     res['-webkit-text-stroke-width'] = `${style.outline}px`;
                     res['-webkit-text-stroke-color'] = style.outlineColor;
                     return res;
+                },
+                convertTimestamp(timestamp) {
+                    return convertTimestamp(timestamp);
                 }
             },
             computed: {
