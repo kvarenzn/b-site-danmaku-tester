@@ -1,6 +1,15 @@
-# B站直播弹幕测试器
+# 紫金葫芦（母）
 一个单html文件版的B站直播弹幕测试工具，使用Vue框架。
-## 目的
+
+## 项目依赖
+感谢以下的项目的作者，如果没有他们，就没有这个项目的今天
++ [vue3](https://www.github.com/vuejs/vue)
++ [Sortable.js](https://github.com/SortableJS/Sortable)
++ [clipboard.js](https://github.com/zenorocha/clipboard.js)
++ [mosha-vue-toastify](https://github.com/szboynono/mosha-vue-toastify)
++ [pako](https://github.com/nodeca/pako)
+
+## 项目目的
 <s>本项目存在的目的是给另一个项目[danmaqua-android](https://github.com/danmaqua/danmaqua-android) 做预告。我们会把将要实现在`danmaqua-android`中的平台无关的功能预先在这里实现，在接受用户反馈的同时对网页进行快速迭代，待功能的具体细节（如操作逻辑等）确定下之后再在`danmaqua-android`中实现，防止不必要的分包过程。</s>
 
 <s>目前这个项目主要是为了展示和探讨将要实现的“自定义规则的弹幕匹配”功能。</s>
@@ -45,6 +54,7 @@
 
 ## 使用方法
 请跟随网页内提示操作。
-## 在线版
+
+## 在线版本
 在[这里](https://danmaku.meagames.cn)有一个已经部署好的版本，可直接试用。
 
