@@ -298,6 +298,7 @@
 
         const compileRule = rule => new Function('{uid, user, type, content}', `return ${compileHelper(rule)};`);
         const compileRules = rules => new Function('{uid, user, type, content}', `return ${compileHelper({ type: 'or', rules })};`);
+        const compileRuleWithInner = inner => new Function('{uid, user, type, content}', `return ${inner};`);
 
         const encodeRules = (settings, mode, roomId) => {
             // step 1: object to json
@@ -348,6 +349,16 @@
             let mode = RegExp.$1 === '陶醉' ? 1 : 0;
             let roomId = parseInt(RegExp.$2);
             let chopedData = RegExp.$3;
+
+            // step 0.5: filter chopedData
+            let tmp = '';
+            for (let char of chopedData) {
+                let charCode = char.charCodeAt();
+                if (charCode >= 0x3600 && charCode < 0x3600 + 4096) {
+                    tmp += char;
+                }
+            }
+            chopedData = tmp;
 
             // step 1: decode data
             let arr = [];
@@ -755,8 +766,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
                             </div>
                         </div>
-                        <div class="dialog-big-button" @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
-                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原敏感词【开】' : '还原敏感词【关】' }}</div>
+                        <div class="dialog-big-button"
+                            @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
+                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原敏感词【开】' : '还原敏感词【关】' }}
+                            </div>
                             <div class="big-button-description">
                                 {{ tryRecoveryFromBannedWords ? '尝试从和谐后的弹幕中还原原始弹幕' : '保留接收到的弹幕内容不动' }}
                             </div>
@@ -843,9 +856,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 </div>
                             </div>
                         </div>
-                        <div class="dialog-big-button">
-                            <div class="big-button-label" @click="confirmExport">确认导出</div>
+                        <div style="display: flex; column-gap: 10px; justify-content: space-around;">
+                            <div class="dialog-big-button">
+                                <div class="big-button-label" @click="confirmExport">导出为默认格式</div>
+                            </div>
+                            <div class="dialog-big-button">
+                                <div class="big-button-label" @click="confirmExport('url')">导出为链接形式</div>
+                            </div>
                         </div>
+
                 </template>
                 <template v-else>
                     <div class="settings-category">
@@ -2458,7 +2477,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     this.exportConfig.selection = this.members.map(_ => false);
                     this.$refs.exportSettingsDialog.showModal();
                 },
-                confirmExport() {
+                confirmExport(mode) {
                     let members;
                     if (this.exportConfig.selectAll) {
                         members = this.members;
@@ -2471,6 +2490,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         this.exportResult = encodeRules(members, +this.exportConfig.mode, +this.exportConfig.specificRoomID);
                     } else {
                         this.exportResult = encodeRules(members, +this.exportConfig.mode);
+                    }
+
+                    if (mode === 'url') {
+                        this.exportResult = window.location.origin + '/#' + this.exportResult + '【复制这段话粘贴在浏览器打开，即可获取由我分享的弹幕过滤规则】';
                     }
 
                     this.exportState = 1;
@@ -2520,14 +2543,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 closeImportDialog() {
                     this.$refs.importSettingsDialog.close();
                 },
-                confirmImport() {
+                async confirmImport() {
                     if (this.importConfig.goToRoom) {
                         this.roomId = this.importConfig.specificRoomID;
                         if (this.clientRunning) {
                             client.stop();
                             this.clientRunning = false;
                         }
-                        this.onEnsureClicked();
+                        await this.onEnsureClicked();
                         this.clearDanmakuList();
                     }
 
@@ -2541,6 +2564,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         }
                     }
 
+                    let compiledRules = [];
+
+                    for (let member of this.members) {
+                        compiledRules.push(compileHelper({ type: 'or', rules: member.rules }));
+                    }
+
                     let members;
                     if (this.importConfig.selectAll) {
                         members = this.importMembers.map(v => v);
@@ -2550,8 +2579,28 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     }
 
                     for (let member of members) {
+                        let addThisRule = true;
+                        let ruleInner = compileHelper({ type: 'or', rules: member.rules });
+                        for (let i = 0; i < this.members.length; i++) {
+                            let existedMember = this.members[i];
+                            if (member.name === existedMember.name &&
+                                member.action === existedMember.action &&
+                                member.style.fontColor === existedMember.style.fontColor &&
+                                member.style.backgroundColor === existedMember.style.backgroundColor &&
+                                ruleInner === compiledRules[i]) {
+                                addThisRule = false;
+                                break;
+                            }
+                        }
+                        if (!addThisRule) {
+                            continue;
+                        }
                         member.ruleMatcher = compileRules(member.rules);
                         this.members.push(member);
+                    }
+
+                    if (!this.clientRunning && (+this.importConfig.switchToMode === 1)) {
+                        await this.onEnsureClicked();
                     }
 
                     this.switchMode(+this.importConfig.switchToMode);
@@ -2847,6 +2896,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         this.importData = hash;
                         if (this.tryParseImportInput()) {
                             this.importConfig.selectAll = true;
+                            this.importConfig.replaceRules = false;
                             this.confirmImport();
                         }
                     }
