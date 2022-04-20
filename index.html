@@ -2227,6 +2227,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                             } else if (this.deleteIgnoreDanmaku) {
                                                 return;
                                             } else if (this.currentMode === 1) {
+                                                danmaku.member = null;
                                                 continue;
                                             }
                                             break;
