@@ -2508,11 +2508,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             this.importConfig.selection = members.map(_ => false);
                             this.importConfig.switchToMode = members.mode;
                             this.importState = 1;
+                            return true;
                         } else {
                             throw void 0;
                         }
                     } catch (e) {
                         this.closeImportDialog();
+                        return false;
                     }
                 },
                 closeImportDialog() {
@@ -2836,25 +2838,23 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     return '确认关闭吗？';
                 };
 
-                let hash = window.location.hash
-                if (hash) {
-                    // try load data from hash
-                    hash = decodeURIComponent(hash);
-                    this.importData = hash;
-                    this.$refs.importSettingsDialog.showModal();
-                    this.tryParseImportInput();
-                }
-
-                window.onhashchange = () => {
-                    let hash = window.location.hash
+                let tryImport = () => {
+                    let hash = window.location.hash;
                     if (hash) {
+                        window.location.hash = '';
                         // try load data from hash
                         hash = decodeURIComponent(hash);
                         this.importData = hash;
-                        this.$refs.importSettingsDialog.showModal();
-                        this.tryParseImportInput();
+                        if (this.tryParseImportInput()) {
+                            this.importConfig.selectAll = true;
+                            this.confirmImport();
+                        }
                     }
                 };
+
+                tryImport();
+
+                window.onhashchange = tryImport;
             }
         });
 
