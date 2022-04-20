@@ -755,6 +755,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
                             </div>
                         </div>
+                        <div class="dialog-big-button" @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
+                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原敏感词【开】' : '还原敏感词【关】' }}</div>
+                            <div class="big-button-description">
+                                {{ tryRecoveryFromBannedWords ? '尝试从和谐后的弹幕中还原原始弹幕' : '保留接收到的弹幕内容不动' }}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="settings-category">
@@ -2224,11 +2230,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                                         body: danmaku.inner ? danmaku.inner : danmaku.content,
                                                     });
                                                 }
-                                            } else if (this.deleteIgnoreDanmaku) {
-                                                return;
                                             } else if (this.currentMode === 1) {
                                                 danmaku.member = null;
                                                 continue;
+                                            } else if (this.deleteIgnoreDanmaku) {
+                                                return;
                                             }
                                             break;
                                         }
@@ -2825,6 +2831,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     await this.onEnsureClicked();
                     this.switchMode(1);
                 }
+
+                window.onbeforeunload = (e) => {
+                    return '确认关闭吗？';
+                };
             }
         });
 
