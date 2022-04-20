@@ -2835,6 +2835,26 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 window.onbeforeunload = (e) => {
                     return '确认关闭吗？';
                 };
+
+                let hash = window.location.hash
+                if (hash) {
+                    // try load data from hash
+                    hash = decodeURIComponent(hash);
+                    this.importData = hash;
+                    this.$refs.importSettingsDialog.showModal();
+                    this.tryParseImportInput();
+                }
+
+                window.onhashchange = () => {
+                    let hash = window.location.hash
+                    if (hash) {
+                        // try load data from hash
+                        hash = decodeURIComponent(hash);
+                        this.importData = hash;
+                        this.$refs.importSettingsDialog.showModal();
+                        this.tryParseImportInput();
+                    }
+                };
             }
         });
 
