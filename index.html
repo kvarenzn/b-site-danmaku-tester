@@ -493,12 +493,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
             <div class="input-with-button">
-                <input v-model="roomId" placeholder="直播房间号码" class="room-id-input"
+                <input v-model="roomId" placeholder="请输入直播间号码" class="room-id-input"
                     @keyup.enter.native="onEnsureClicked">
                 <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
             </div>
             <button class="round-button"
-                style="width: 40px; height: 40px; font-size: 15px; margin-right: 10%; margin-top: auto; margin-bottom: auto;"
+                style="width: 30px; height: 30px; font-size: 12px; margin-right: 10%; margin-top: auto; margin-bottom: auto;"
                 @click="openSearchDialog">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
@@ -565,7 +565,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </template>
                 <template v-else>
                     <div v-if="clientRunning" class="notify-text">
-                        成功连接{{ liverName ? liverName + '的' : '' }}直播间
+                        直播间连接成功
                         <br />
                         弹幕服务器有少许延迟请耐心等候
                         <br />
@@ -573,8 +573,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <br />
                         也有可能是当前直播间无人发言
                         <br />
+                        <br />
+                        <br />
                         <div class="dialog-big-button" @click="gotoLivingRoom">
-                            <div class="big-button-label">进入{{ liverName ? liverName + '的' : '' }}哔哩哔哩直播间</div>
+                            <div class="big-button-label">点击进入{{ liverName ? liverName + '的' : '' }}直播间</div>
                             <div class="big-button-description">https://live.bilibili.com/{{ roomId }}</div>
                         </div>
                     </div>
@@ -582,9 +584,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         【第一步】
                         <br />
                         <br />
-                        请在上方输入直播房间号码后
+                        请输入或搜索直播房间号码后
                         <br />
-                        点击连接
+                        点击连接直播间
                         <br />
                     </div>
                 </template>
@@ -1123,7 +1125,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 </div>
                             </div>
                             <div class="dialog-big-button" @click="closeConfigStyleDialog">
-                                <div class="big-button-label">确定</div>
+                                <div class="big-button-label">完成设置</div>
                             </div>
                         </div>
                         <div class="flex-column">
@@ -1195,7 +1197,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         <dialog ref="exportSubtitleDialog">
             <div class="dialog-content">
                 <div class="settings-category">
-                    <div class="category-name">字幕样式设定</div>
+                    <div class="category-name">ASS字幕样式设定：点击规则名称可修改或重设样式</div>
                     <div class="category-content">
                         <div class="export-style-list">
                             <div class="dialog-big-button" @click="editStyle(member)"
@@ -1233,8 +1235,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         <dialog ref="searchUserDialog">
             <div class="dialog-content">
                 <div class="labeled-item">
-                    <div class="labeled-item-label">主播名称</div>
-                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser">
+                    <div class="labeled-item-label">搜索主播</div>
+                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser" placeholder="可输入昵称或缩写">
                     <button class="ensure-button" @click="goSearchUser">搜索</button>
                 </div>
                 <div class="settings-category" v-if="userSearchResult.length">
@@ -1251,7 +1253,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     </div>
                 </div>
                 <div class="dialog-big-button" @click="closeSearchDialog">
-                    <div class="big-button-label">取消</div>
+                    <div class="big-button-label">取消搜索</div>
                 </div>
             </div>
         </dialog>
@@ -2166,7 +2168,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     exportMembersList: [],
                     exportedStyles: {},
                     selectedStyle: null,
-                    previewText: '这是一条测试用字幕',
+                    previewText: '字幕样式ABC123abc',
                     exportFileName: '导出字幕',
                     subtitleTitle: '',
                     // search user
@@ -2215,11 +2217,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         }
                         this.danmakuList = danmakus;
                         mosha.createToast({
-                            title: '请注意：沉浸模式已激活',
-                            description: '该模式下弹幕池仅显示规则中已有的高亮弹幕<br/>鼠标移动至右下角呼出菜单即可退出<br/>点击＋/－按钮可调整字体大小<br/>多显示器按下F11全屏网页后显示效果更佳'
+                            title: '请注意：沉浸模式已激活  浮动通知已停用',
+                            description: '该模式下弹幕池仅显示规则中已有的高亮弹幕<br/>鼠标移动至右下角即可呼出菜单退出该模式<br/>右下角菜单中点击＋/－按钮可调整字号大小，字体暂不支持修改<br/>右下角菜单中导出按钮可将高亮弹幕消息导出为字幕，方便切片<br/>多显示器按下F11全屏网页后显示效果更佳'
                         }, {
                             type: 'info',
-                            timeout: 15000,
+                            timeout: 20000,
                             hideProgressBar: true,
                             position: 'top-left'
                         });
