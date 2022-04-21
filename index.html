@@ -497,7 +497,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     @keyup.enter.native="onEnsureClicked">
                 <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
             </div>
-            <button class="round-button" style="width: 40px; height: 40px; font-size: 15px; margin-right: 10%; margin-top: auto; margin-bottom: auto;" @click="openSearchDialog">
+            <button class="round-button"
+                style="width: 40px; height: 40px; font-size: 15px; margin-right: 10%; margin-top: auto; margin-bottom: auto;"
+                @click="openSearchDialog">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </header>
@@ -519,15 +521,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </div>
                 <template v-if="danmakuList.length">
                     <div class="floating-area">
-                        <button class="goto-button" @click="gotoLivingRoom" v-if="roomId">
-                            前往直播间
+                        <button class="goto-button" @click="gotoLivingRoom">
+                            进入直播间
                         </button>
                         <button class="delete-button" @click="clearDanmakuList" v-if="currentMode === 0">
                             清空弹幕列表
-                        </button>
+                        </button>    
                     </div>
-                    <button class="floating-open-button" @click="openFloatingWindow"
-                        v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button>
+                    <!-- <button class="floating-open-button" @click="openFloatingWindow"
+                        v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button> -->
                     <div class="scroll-list" ref="danmakuScroll">
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box"
@@ -571,6 +573,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <br />
                         也有可能是当前直播间无人发言
                         <br />
+                        <div class="dialog-big-button" @click="gotoLivingRoom">
+                            <div class="big-button-label">进入{{ liverName ? liverName + '的' : '' }}哔哩哔哩直播间</div>
+                            <div class="big-button-description">https://live.bilibili.com/{{ roomId }}</div>
+                        </div>
                     </div>
                     <div v-else class="notify-text">
                         【第一步】
@@ -1225,21 +1231,27 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             </div>
         </dialog>
         <dialog ref="searchUserDialog">
-            <div class="labeled-item">
-                <div class="labeled-item-label">主播名称</div>
-                <input class="colored-input-input" v-model="searchUserText">
-                <button class="ensure-button" @click="goSearchUser">搜索</button>
-            </div>
-            <div class="settings-category" v-if="userSearchResult.length" style="margin-top: 20px;">
-                <div class="category-name">搜索结果</div>
-                <div class="category-content">
-                    <div class="scroll-list" style="min-height: 30vh; row-gap: 10px">
-                        <div class="user-info-box" v-for="result in userSearchResult"
-                            @click="selectSearchResult(result.roomId)">
-                            <div class="user-info-name">{{ result.name }}</div>
-                            <div class="user-info-details">UID: {{ result.uid }}, 直播间ID: {{ result.roomId }}, 粉丝数: {{ result.fans }}</div>
+            <div class="dialog-content">
+                <div class="labeled-item">
+                    <div class="labeled-item-label">主播名称</div>
+                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser">
+                    <button class="ensure-button" @click="goSearchUser">搜索</button>
+                </div>
+                <div class="settings-category" v-if="userSearchResult.length">
+                    <div class="category-name">搜索结果</div>
+                    <div class="category-content">
+                        <div class="scroll-list" style="min-height: 30vh; row-gap: 10px">
+                            <div class="user-info-box" v-for="result in userSearchResult"
+                                @click="selectSearchResult(result.roomId)">
+                                <div class="user-info-name">{{ result.name }}</div>
+                                <div class="user-info-details">UID: {{ result.uid }}&nbsp;&nbsp;直播间ID: {{ result.roomId
+                                    }}&nbsp;&nbsp;粉丝数: {{ result.fans }}</div>
+                            </div>
                         </div>
                     </div>
+                </div>
+                <div class="dialog-big-button" @click="closeSearchDialog">
+                    <div class="big-button-label">取消</div>
                 </div>
             </div>
         </dialog>
@@ -2254,7 +2266,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     this.liverName = liverInfo.data.name;
                                 }
 
-                                if (this.roomLiving <= 0) {
+                                if (this.roomLiving != 1) {
                                     mosha.createToast({
                                         title: '直播间未开播',
                                         description: '当前直播间未开播，接收到的弹幕只是虚空聊天'
