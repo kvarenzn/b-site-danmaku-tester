@@ -336,13 +336,13 @@
             if (typeof roomId === 'undefined') {
                 return headerHeader + '者注：' + result + tail;
             } else {
-                return `${headerHeader}者注于「${roomId}」：` + result + tail;
+                return `${headerHeader}者注于「${roomId}」的直播间：` + result + tail;
             }
         };
 
         const decodeRules = data => {
             // step 0: check header
-            if (!/(陶醉|译)者注(?:于「(.+)」)?：(.+)/.test(data)) {
+            if (!/(陶醉|译)者注(?:于「(.+)」(?:的直播间)?)?：(.+)/.test(data)) {
                 return;
             }
 
@@ -488,18 +488,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.21 "CRAB" build
-                2&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+                3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
-            <button class="round-button" style="width: 50px; height: 50px; font-size: 20px;" @click="openSearchDialog">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input"
                     @keyup.enter.native="onEnsureClicked">
                 <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
             </div>
+            <button class="round-button" style="width: 40px; height: 40px; font-size: 15px; margin-right: 10%; margin-top: auto; margin-bottom: auto;" @click="openSearchDialog">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
         </header>
         <div class="main">
             <div class="danmaku-view">
@@ -518,8 +518,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     </button>
                 </div>
                 <template v-if="danmakuList.length">
-                    <button class="floating-delete-button" @click="clearDanmakuList"
-                        v-if="currentMode === 0">清空弹幕列表</button>
+                    <div class="floating-area">
+                        <button class="goto-button" @click="gotoLivingRoom" v-if="roomId">
+                            前往直播间
+                        </button>
+                        <button class="delete-button" @click="clearDanmakuList" v-if="currentMode === 0">
+                            清空弹幕列表
+                        </button>
+                    </div>
                     <button class="floating-open-button" @click="openFloatingWindow"
                         v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button>
                     <div class="scroll-list" ref="danmakuScroll">
@@ -557,7 +563,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </template>
                 <template v-else>
                     <div v-if="clientRunning" class="notify-text">
-                        成功连接直播间
+                        成功连接{{ liverName ? liverName + '的' : '' }}直播间
                         <br />
                         弹幕服务器有少许延迟请耐心等候
                         <br />
@@ -1224,14 +1230,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <input class="colored-input-input" v-model="searchUserText">
                 <button class="ensure-button" @click="goSearchUser">搜索</button>
             </div>
-            <div class="settings-category" v-if="userSearchResult.length">
+            <div class="settings-category" v-if="userSearchResult.length" style="margin-top: 20px;">
                 <div class="category-name">搜索结果</div>
                 <div class="category-content">
                     <div class="scroll-list" style="min-height: 30vh; row-gap: 10px">
                         <div class="user-info-box" v-for="result in userSearchResult"
                             @click="selectSearchResult(result.roomId)">
                             <div class="user-info-name">{{ result.name }}</div>
-                            <div class="user-info-details">UID: {{ result.uid }}, 直播间ID: {{ result.roomId }}</div>
+                            <div class="user-info-details">UID: {{ result.uid }}, 直播间ID: {{ result.roomId }}, 粉丝数: {{ result.fans }}</div>
                         </div>
                     </div>
                 </div>
@@ -1471,7 +1477,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         .input-with-button {
             display: flex;
             flex-direction: row;
-            margin-right: 10%;
             margin-top: 10px;
             margin-bottom: 10px;
         }
@@ -1695,6 +1700,21 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         }
 
         .delete-button:active {
+            background-color: transparent;
+        }
+
+        .goto-button {
+            background-color: transparent;
+            border: pink 1px solid;
+            color: pink;
+            border-radius: 3px;
+        }
+
+        .goto-button:hover {
+            background-color: rgba(255, 192, 203, 0.5);
+        }
+
+        .goto-button:active {
             background-color: transparent;
         }
 
@@ -2897,13 +2917,22 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         this.userSearchResult.push({
                             name: user.uname,
                             uid: user.mid,
-                            roomId: user.room_id
+                            roomId: user.room_id,
+                            fans: user.fans
                         });
                     }
                 },
                 selectSearchResult(roomId) {
                     this.roomId = roomId;
                     this.closeSearchDialog();
+                    if (this.clientRunning) {
+                        this.clientRunning = false;
+                        client.stop();
+                    }
+                    this.onEnsureClicked();
+                },
+                gotoLivingRoom() {
+                    window.open('https://live.bilibili.com/' + this.roomId);
                 }
             },
             computed: {
