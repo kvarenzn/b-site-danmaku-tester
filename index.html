@@ -342,12 +342,12 @@
 
         const decodeRules = data => {
             // step 0: check header
-            if (!/^(陶醉|译)者注(?:于「(\d+)」)?：(.+)/.test(data)) {
+            if (!/(陶醉|译)者注(?:于「(.+)」)?：(.+)/.test(data)) {
                 return;
             }
 
             let mode = RegExp.$1 === '陶醉' ? 1 : 0;
-            let roomId = parseInt(RegExp.$2);
+            let room = RegExp.$2;
             let chopedData = RegExp.$3;
 
             // step 0.5: filter chopedData
@@ -386,23 +386,23 @@
             let settings = JSON.parse(inflatedData);
             // final: result result
             settings.mode = mode;
-            if (!isNaN(roomId)) {
-                settings.roomId = roomId;
-            }
+            settings.room = room;
             return settings;
         };
 
-        const decodeRulesEnhanced = data => {
-            let result = '';
-            for (let i = 0; i < data.length; i++) {
-                let char = data[i];
-                let charCode = data.charCodeAt(i);
-                if ('陶醉译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
-                    result += char;
-                }
-            }
-            return decodeRules(result);
-        };
+        const decodeRulesEnhanced = decodeRules;
+
+        // const decodeRulesEnhanced = data => {
+        //     let result = '';
+        //     for (let i = 0; i < data.length; i++) {
+        //         let char = data[i];
+        //         let charCode = data.charCodeAt(i);
+        //         if ('陶醉译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
+        //             result += char;
+        //         }
+        //     }
+        //     return decodeRules(result);
+        // };
 
 
     </script>
@@ -487,11 +487,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.21 "CRAB" build 1&nbsp;&nbsp;&nbsp;*推荐使用<a
-                    href="https://www.mozilla.org/zh-CN/firefox/browsers"
+            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.21 "CRAB" build
+                2&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
+            <button class="round-button" style="width: 50px; height: 50px; font-size: 20px;" @click="openSearchDialog">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
             <div class="input-with-button">
                 <input v-model="roomId" placeholder="直播房间号码" class="room-id-input"
                     @keyup.enter.native="onEnsureClicked">
@@ -811,19 +814,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     </select>
                                 </div>
                                 <div class="settings-category">
-                                    <div class="category-name">附加直播间号码【点击按钮可切换】</div>
+                                    <div class="category-name">附加直播间信息【点击按钮可切换】</div>
                                     <div class="category-content">
                                         <div class="dialog-big-button"
                                             @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
-                                            <div class="big-button-label">附加直播间号码 【{{ exportConfig.forSpecificRoom ? '开'
+                                            <div class="big-button-label">附加直播间信息 【{{ exportConfig.forSpecificRoom ? '开'
                                                 : '关' }}】</div>
                                             <div class="big-button-description">{{ exportConfig.forSpecificRoom ?
                                                 '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
                                         </div>
                                         <div class="labeled-item" v-if="exportConfig.forSpecificRoom">
-                                            <div class="labeled-item-label">直播间号码</div>
-                                            <input class="labeled-item-item" v-model="exportConfig.specificRoomID"
-                                                type="number">
+                                            <div class="labeled-item-label">直播间号码或主播用户名</div>
+                                            <input class="labeled-item-item" v-model="exportConfig.specificRoomID">
                                         </div>
                                     </div>
                                 </div>
@@ -1212,6 +1214,25 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     </div>
                     <div class="dialog-big-button" @click="confirmAssExport">
                         <div class="big-button-label">确定</div>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        <dialog ref="searchUserDialog">
+            <div class="labeled-item">
+                <div class="labeled-item-label">主播名称</div>
+                <input class="colored-input-input" v-model="searchUserText">
+                <button class="ensure-button" @click="goSearchUser">搜索</button>
+            </div>
+            <div class="settings-category" v-if="userSearchResult.length">
+                <div class="category-name">搜索结果</div>
+                <div class="category-content">
+                    <div class="scroll-list" style="min-height: 30vh; row-gap: 10px">
+                        <div class="user-info-box" v-for="result in userSearchResult"
+                            @click="selectSearchResult(result.roomId)">
+                            <div class="user-info-name">{{ result.name }}</div>
+                            <div class="user-info-details">UID: {{ result.uid }}, 直播间ID: {{ result.roomId }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2023,6 +2044,33 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             flex-direction: column;
             flex-grow: 1;
         }
+
+        .user-info-box {
+            display: flex;
+            flex-direction: column;
+            border: solid 1px rgba(255, 255, 255, 0.4);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .user-info-box:hover {
+            background-color: darkgray;
+        }
+
+        .user-info-box:active {
+            background-color: transparent;
+        }
+
+        .user-info-name {
+            color: white;
+            font-weight: bold;
+            font-size: larger;
+        }
+
+        .user-info-details {
+            color: gray;
+            font-size: small;
+        }
     </style>
     <script>
         const draggable = vuedraggable;
@@ -2088,7 +2136,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     selectedStyle: null,
                     previewText: '这是一条测试用字幕',
                     exportFileName: '导出字幕',
-                    subtitleTitle: ''
+                    subtitleTitle: '',
+                    // search user
+                    searchUserText: '',
+                    userSearchResult: [],
+                    // live room meta info
+                    roomTitle: '',
+                    liverName: ''
                 };
             },
             methods: {
@@ -2153,9 +2207,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         if (isNaN(roomId)) {
                             return;
                         }
+                        this.roomTitle = '';
+                        this.liverName = '';
                         try {
-                            let result = await (await fetch('https://api.danmaku.meagames.cn/' + roomId)).json();
-                            if (!result.error) {
+                            let result = await (await fetch('https://api.danmaku.meagames.cn/room_init/' + roomId)).json();
+                            if (result.data) {
                                 let data = result.data;
                                 if (roomId != data.room_id) {
                                     mosha.createToast({
@@ -2169,6 +2225,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 this.roomId = data.room_id;
                                 this.roomLiving = data.live_status;
                                 this.livingStart = data.live_time * 1000;
+                                let roomInfo = await (await fetch('https://api.danmaku.meagames.cn/room_info/' + roomId)).json();
+                                if (roomInfo.data) {
+                                    this.roomTitle = roomInfo.data.title;
+                                }
+                                let liverInfo = await (await fetch('https://api.danmaku.meagames.cn/user_info/' + data.uid)).json();
+                                if (liverInfo.data) {
+                                    this.liverName = liverInfo.data.name;
+                                }
+
                                 if (this.roomLiving <= 0) {
                                     mosha.createToast({
                                         title: '直播间未开播',
@@ -2180,7 +2245,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 } else {
                                     mosha.createToast({
                                         title: '已成功连接到直播',
-                                        description: `开播时间：${new Date(this.livingStart).toLocaleString()}`
+                                        description: `${roomInfo.data.title}<br/>开播时间：${new Date(this.livingStart).toLocaleString()}`
                                     }, {
                                         type: 'info',
                                         hideProgressBar: true
@@ -2473,7 +2538,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     this.$refs.globalSettingsDialog.close();
                     this.exportState = 0;
                     this.exportConfig.mode = this.currentMode;
-                    this.exportConfig.specificRoomID = this.roomId;
+                    if (this.liverName) {
+                        this.exportConfig.specificRoomID = this.liverName;
+                    } else {
+                        this.exportConfig.specificRoomID = this.roomId;
+                    }
                     this.exportConfig.selection = this.members.map(_ => false);
                     this.$refs.exportSettingsDialog.showModal();
                 },
@@ -2486,8 +2555,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         members = this.members.filter((_, index) => selection[index]);
                     }
 
-                    if (this.exportConfig.forSpecificRoom && !isNaN(+this.exportConfig.specificRoomID)) {
-                        this.exportResult = encodeRules(members, +this.exportConfig.mode, +this.exportConfig.specificRoomID);
+                    if (this.exportConfig.forSpecificRoom) {
+                        this.exportResult = encodeRules(members, +this.exportConfig.mode, this.exportConfig.specificRoomID);
                     } else {
                         this.exportResult = encodeRules(members, +this.exportConfig.mode);
                     }
@@ -2524,9 +2593,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
                             this.importMembers = members;
 
-                            if (members.roomId && !isNaN(+members.roomId)) {
+                            if (members.room) {
                                 this.importConfig.goToRoom = true;
-                                this.importConfig.specificRoomID = members.roomId;
+                                this.importConfig.specificRoomID = members.room;
                             }
                             this.importConfig.selection = members.map(_ => false);
                             this.importConfig.switchToMode = members.mode;
@@ -2545,13 +2614,41 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 async confirmImport() {
                     if (this.importConfig.goToRoom) {
-                        this.roomId = this.importConfig.specificRoomID;
-                        if (this.clientRunning) {
-                            client.stop();
-                            this.clientRunning = false;
+                        let roomId = this.importConfig.specificRoomID;
+                        let changeRoomIdSucceed = true;
+                        if (isNaN(+roomId)) {
+                            try {
+                                let users = await (await fetch(`https://api.danmaku.meagames.cn/search_user/${roomId}`)).json();
+                                if (users.error) {
+                                    throw users.error;
+                                }
+                                users = users.data;
+                                if (users.length) {
+                                    this.roomId = +users[0].room_id;
+                                } else {
+                                    throw '无搜索结果';
+                                }
+                            } catch (e) {
+                                changeRoomIdSucceed = false;
+                                mosha.createToast({
+                                    title: `进入配置提到的直播间「${roomId}」失败`,
+                                    description: `${e}`
+                                }, {
+                                    type: 'warning',
+                                    hideProgressBar: true
+                                });
+                            }
+                        } else if (!isNaN(+roomId)) {
+                            this.roomId = +roomId;
                         }
-                        await this.onEnsureClicked();
-                        this.clearDanmakuList();
+                        if (changeRoomIdSucceed) {
+                            if (this.clientRunning) {
+                                client.stop();
+                                this.clientRunning = false;
+                            }
+                            await this.onEnsureClicked();
+                            this.clearDanmakuList();
+                        }
                     }
 
                     if (this.importConfig.replaceRules) {
@@ -2776,6 +2873,37 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 convertTimestamp(timestamp) {
                     return convertTimestamp(timestamp);
+                },
+                openSearchDialog() {
+                    this.searchUserText = '';
+                    this.userSearchResult = [];
+                    this.$refs.searchUserDialog.showModal();
+                },
+                closeSearchDialog() {
+                    this.$refs.searchUserDialog.close();
+                },
+                async goSearchUser() {
+                    console.log(this.searchUserText);
+                    if (!this.searchUserText) {
+                        return;
+                    }
+                    let result = await (await fetch(`https://api.danmaku.meagames.cn/search_user/${this.searchUserText}`)).json();
+                    if (result.error) {
+                        return;
+                    }
+                    let users = result.data;
+                    this.userSearchResult = [];
+                    for (let user of users) {
+                        this.userSearchResult.push({
+                            name: user.uname,
+                            uid: user.mid,
+                            roomId: user.room_id
+                        });
+                    }
+                },
+                selectSearchResult(roomId) {
+                    this.roomId = roomId;
+                    this.closeSearchDialog();
                 }
             },
             computed: {
