@@ -33,19 +33,25 @@
                 this.encoder = new TextEncoder();
                 this.decoder = new TextDecoder();
                 this.heartbeatTimer = undefined;
-                this.handlers = [];
+                // this.handlers = [];
+                this.handler = null;
             }
 
-            addHandler(handler) {
-                this.handlers.push(handler);
+            // addHandler(handler) {
+            //     console.log('add handler');
+            //     this.handlers.push(handler);
+            // }
+
+            setHandler(handler) {
+                this.handler = handler;
             }
 
-            removeHandler(handler) {
-                let index = this.handlers.indexOf(handler);
-                if (index >= 0) {
-                    this.handlers.pop(index);
-                }
-            }
+            // removeHandler(handler) {
+            //     let index = this.handlers.indexOf(handler);
+            //     if (index >= 0) {
+            //         this.handlers.pop(index);
+            //     }
+            // }
 
             pack(data, operation) {
                 let body = this.encoder.encode(JSON.stringify(data));
@@ -75,7 +81,8 @@
 
             stop() {
                 this.roomID = undefined;
-                this.handlers = [];
+                // this.handlers = []
+                this.handler = null;
                 this.socket.close(1000);
                 this.socket = undefined;
             }
@@ -171,8 +178,11 @@
             }
 
             processJSONMessage(data) {
-                for (let handler of this.handlers) {
-                    handler(data);
+                // for (let handler of this.handlers) {
+                //     handler(data);
+                // }
+                if (this.handler) {
+                    this.handler(data);
                 }
             }
 
@@ -488,7 +498,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.22 "WALL" build
-                1&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+                3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
@@ -2289,7 +2299,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         } catch (e) {
                             console.log('fetch failed');
                         }
-                        client.addHandler(msg => {
+                        client.setHandler(msg => {
                             if (msg.cmd == 'DANMU_MSG') {
                                 this.beforeDanmakuUpdate();
 
