@@ -484,6 +484,51 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             a.click();
         };
     </script>
+    <script>
+        // from https://stackoverflow.com/a/20736292
+        // by @stevendaniels
+        // modified to match without cases
+        // not used yet
+        const PINYIN_REGEX = /((?:miu|[pm]ou|[bpm](?:o|e(?:i|ng?)?|a(?:ng?|i|o)?|i(?:e|ng?|a[no])?|u))|(?:f(?:ou?|[ae](?:ng?|i)?|u))|(?:d(?:e(?:i|ng?)|i(?:a[on]?|u))|[dt](?:a(?:i|ng?|o)?|e(?:i|ng)?|i(?:a[on]?|e|ng|u)?|o(?:ng?|u)|u(?:o|i|an?|n)?))|(?:neng?|[ln](?:a(?:i|ng?|o)?|e(?:i|ng)?|i(?:ang|a[on]?|e|ng?|u)?|o(?:ng?|u)|u(?:o|i|an?|n)?|ve?))|(?:[ghk](?:a(?:i|ng?|o)?|e(?:i|ng?)?|o(?:u|ng)|u(?:a(?:i|ng?)?|i|n|o)?))|(?:zh?ei|[cz]h?(?:e(?:ng?)?|o(?:ng?|u)?|ao|u?a(?:i|ng?)?|u?(?:o|i|n)?))|(?:song|[sS]hua(?:i|ng?)?|shei|sh?(?:a(?:i|ng?|o)?|en?g?|ou|u(?:a?n|o|i)?|i))|(?:r(?:[ae]ng?|i|e|ao|ou|ong|u[oin]|ua?n?))|(?:[jqx](?:i(?:a(?:o|ng?)?|[eu]|ong|ng?)?|u(?:e|a?n)?))|(?:(?:a(?:i|o|ng?)?|ou?|e(?:i|ng?|r)?))|(?:w(?:a(?:i|ng?)?|o|e(?:i|ng?)?|u))|y(?:a(?:o|ng?)?|e|in?g?|o(?:u|ng)?|u(?:e|a?n)?))/i;
+
+        const SENSITIVE_SINGLE_CHARS = Object.freeze({
+            kou: '口',
+            song: '送',
+            shui: '睡',
+            lu: '录',
+            qian: '钱',
+            zhuang: '装',
+            guan: '管',
+            gua: '挂',
+            nai: '奶',
+            lan: '烂',
+            hu: '护',
+            bie: '别',
+            qiu: '求',
+            ma: '妈',
+            suo: '锁',
+            yan: '演',
+            xian: '限',
+            shua: '刷',
+            mai: '卖',
+            tui: '推',
+            huan: '换',
+            fu: '服',
+            jiu: '救',
+            ku: '哭',
+            jing: '警'
+        });
+
+        const recovery = string => {
+            for (let pinyin in SENSITIVE_SINGLE_CHARS) {
+                string = string.replace(pinyin, SENSITIVE_SINGLE_CHARS[pinyin]);
+            }
+            string = string.replace('ロ', '口');
+            string = string.replace(/\u0592|\u0594/, '').replace(String.fromCodePoint(0xe0020), '');
+            return string;
+        };
+
+    </script>
     <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/style.css">
 </head>
@@ -497,8 +542,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.22 "WALL" build
-                3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.23 "ALGAE" build
+                1&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
@@ -536,7 +581,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </button>
                         <button class="delete-button" @click="clearDanmakuList" v-if="currentMode === 0">
                             清空弹幕列表
-                        </button>    
+                        </button>
                     </div>
                     <!-- <button class="floating-open-button" @click="openFloatingWindow"
                         v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button> -->
@@ -559,14 +604,23 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     </div>
                                     <div class="danmaku-content" :style="danmaku.member ? {
                                             color: danmaku.member.style.fontColor,
-                                            fontSize: danmakuContentSize
-                                        } : {}" v-if="currentMode === 0">{{
+                                            fontSize: danmakuContentSize,
+                                            textDecorationLine: danmaku.recovered ? 'line-through' : 'none'
+                                        } : {textDecorationLine: danmaku.recovered ? 'line-through' : 'none'}"
+                                        v-if="currentMode === 0">{{
                                         danmaku.content }}</div>
                                     <div class="danmaku-content" :style="danmaku.member ? {
                                         color: danmaku.member.style.fontColor,
-                                        fontSize: danmakuContentSize
-                                    } : {}" v-else>
+                                        fontSize: danmakuContentSize,
+                                        textDecorationLine: danmaku.recovered ? 'line-through' : 'none'
+                                    } : {textDecorationLine: danmaku.recovered ? 'line-through' : 'none'}" v-else>
                                         {{ danmaku.inner ? danmaku.inner : danmaku.content }}
+                                    </div>
+                                    <div class="danmaku-content" :style="danmaku.member ? {
+                                        color: danmaku.member.style.fontColor,
+                                        fontSize: danmakuContentSize,
+                                    } : {}" v-if="danmaku.recovered">
+                                        {{ danmaku.recovered }}
                                     </div>
                                 </template>
                             </div>
@@ -1246,7 +1300,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <div class="dialog-content">
                 <div class="labeled-item">
                     <div class="labeled-item-label">搜索主播</div>
-                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser" placeholder="可输入昵称或缩写">
+                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser"
+                        placeholder="可输入昵称或缩写">
                     <button class="ensure-button" @click="goSearchUser">搜索</button>
                 </div>
                 <div class="settings-category" v-if="userSearchResult.length">
@@ -2186,7 +2241,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     userSearchResult: [],
                     // live room meta info
                     roomTitle: '',
-                    liverName: ''
+                    liverName: '',
+                    // banned words recovery
+                    tryRecoveryFromBannedWords: false
                 };
             },
             methods: {
@@ -2312,8 +2369,16 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     time: new Date(msg.info[0][4]).toLocaleString(),
                                     type: msg.info[0][1],
                                     content: msg.info[1],
+                                    recovered: '',
                                     member: null
                                 };
+
+                                if (this.tryRecoveryFromBannedWords) {
+                                    let recovered = recovery(danmaku.content);
+                                    if (recovered !== danmaku.content) {
+                                        danmaku.recovered = recovered;
+                                    }
+                                }
 
                                 for (let member of this.members) {
                                     if (member.enabled && member.ruleMatcher) {
@@ -3023,6 +3088,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 deleteIgnoreDanmaku(val) {
                     localStorage.setItem('deleteIgnoreDanmaku', val);
                 },
+                tryRecoveryFromBannedWords(val) {
+                    localStorage.setItem('tryRecoveryFromBannedWords', val);
+                },
                 members: {
                     handler(val) {
                         localStorage.setItem('members', JSON.stringify(val));
@@ -3049,6 +3117,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 loadData('currentRuleId', v => +v);
                 loadData('selectedIndex', v => +v);
                 loadData('members', JSON.parse);
+                loadData('tryRecoveryFromBannedWords', JSON.parse);
                 if (this.selectedIndex != -1) {
                     this.selectedMember = this.members[this.selectedIndex];
                 }
