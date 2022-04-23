@@ -549,7 +549,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/vuedraggable.umd.min.js"></script>
     <script src="./js/clipboard.min.js"></script>
     <script src="./js/mosha-vue-toastify.umd.js"></script>
-    <script src="./js/segmentit.min.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.23 "ALGAE" build
@@ -2186,7 +2185,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         const draggable = vuedraggable;
         const client = new DanmakuClient();
         const mosha = window['mosha-vue-toastify'];
-        const segmentit = Segmentit.useDefault(new Segmentit.Segment());
         const app = Vue.createApp({
             data() {
                 return {
@@ -3428,6 +3426,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         app.mount('#app');
 
         const clipboardJS = new ClipboardJS('.copy-button');
+    </script>
+    <script src="./js/segmentit.min.js"></script>
+    <script>
+        const segmentit = Segmentit.useDefault(new Segmentit.Segment());
     </script>
     <span style="display:none">
         <script>document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
