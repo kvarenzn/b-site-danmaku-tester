@@ -540,10 +540,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.10/dist/clipboard.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/segmentit@2.0.3/dist/umd/segmentit.min.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.23 "ALGAE" build
-                1&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+                2&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
@@ -2175,6 +2176,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         const draggable = vuedraggable;
         const client = new DanmakuClient();
         const mosha = window['mosha-vue-toastify'];
+        const segmentit = Segmentit.useDefault(new Segmentit.Segment());
         const app = Vue.createApp({
             data() {
                 return {
@@ -2874,7 +2876,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             break;
                         case 'fetch':
                             this.selectedDanmaku = danmaku;
-                            this.selectedDanmakuCharacters = Array.from(danmaku.content).map(char => ({ char, type: 0 }));
+                            this.selectedDanmakuCharacters = Array.from(segmentit.doSegment(danmaku.content)).map(obj => ({ char: obj.w, type: 0 }));
                             this.$refs.bigbangDialog.showModal();
                             return;
                         case 'type':
