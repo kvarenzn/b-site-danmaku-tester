@@ -530,8 +530,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         };
 
     </script>
-    <!-- <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css"> -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/style.css"> -->
+    <!-- <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/style.css"> -->
     <link rel="stylesheet" href="./css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -539,11 +539,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 <body>
     <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.prod.min.js"></script> -->
     <!-- <script src="https://cdn.staticfile.org/vue/3.2.31/vue.global.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.10/dist/clipboard.min.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/segmentit@2.0.3/dist/umd/segmentit.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuedraggable@4.1.0/dist/vuedraggable.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.10/dist/clipboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/mosha-vue-toastify.umd.js"></script> -->
     <script src="./js/vue.global.prod.min.js"></script>
     <script src="./js/Sortable.min.js"></script>
     <script src="./js/vuedraggable.umd.min.js"></script>
@@ -552,7 +551,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.23 "ALGAE" build
-                4&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+                6&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
@@ -592,6 +591,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             清空弹幕列表
                         </button>
                     </div>
+                    <button class="selection-cancel-button" v-if="fillingRule" @click="fillingRule = null">
+                        取消弹幕选择
+                    </button>
                     <!-- <button class="floating-open-button" @click="openFloatingWindow"
                         v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button> -->
                     <div class="scroll-list" ref="danmakuScroll">
@@ -703,7 +705,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <br />
                     请点击下方的(+)按钮添加规则
                 </div>
-                <button class="floating-round-button" @click="addMember" v-if="currentMode === 0">
+                <button class="floating-round-button" @click="openAddMemberDialog" v-if="currentMode === 0">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
@@ -776,7 +778,59 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </button>
             </div>
         </div>
+        <dialog ref="addMemberDialog">
+            <div class="settings-category">
+                <div class="category-name">要添加哪种规则？</div>
+                <div class="category-content">
+                    <div class="dialog-big-button" @click="addMember('user-and-fetch')">
+                        <div class="big-button-label">发送者昵称和前后缀</div>
+                        <div class="big-button-description">发送者昵称匹配xx 并且 根据匹配前后缀提取弹幕内容</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addMember('uid-and-fetch')">
+                        <div class="big-button-label">发送者UID和前后缀</div>
+                        <div class="big-button-description">发送者UID匹配xx 并且 根据匹配前后缀提取弹幕内容</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addMember('user-and-content')">
+                        <div class="big-button-label">发送者昵称和弹幕内容</div>
+                        <div class="big-button-description">发送者昵称匹配xx 并且 弹幕内容匹配xxx</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addMember('uid-and-content')">
+                        <div class="big-button-label">发送者UID和弹幕内容</div>
+                        <div class="big-button-description">发送者UID匹配xx 并且 弹幕内容匹配xxx</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addMember">
+                        <div class="big-button-label">空规则</div>
+                        <div class="big-button-description">生成一个不含任何细则的规则</div>
+                    </div>
+                </div>
+                <div class="dialog-big-button" @click="addMember">
+                    <div class="big-button-label">取消添加</div>
+                    <div class="big-button-description">不想添加任何规则，只是点错了</div>
+                </div>
+            </div>
+        </dialog>
         <dialog ref="addRuleDialog">
+            <div class="settings-category">
+                <div class="category-name">常用细则组合</div>
+                <div class="category-content">
+                    <div class="dialog-big-button" @click="addRule('user-and-fetch')">
+                        <div class="big-button-label">发送者昵称和前后缀</div>
+                        <div class="big-button-description">发送者昵称匹配xx 并且 根据匹配前后缀提取弹幕内容</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addRule('uid-and-fetch')">
+                        <div class="big-button-label">发送者UID和前后缀</div>
+                        <div class="big-button-description">发送者UID匹配xx 并且 根据匹配前后缀提取弹幕内容</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addRule('user-and-content')">
+                        <div class="big-button-label">发送者昵称和弹幕内容</div>
+                        <div class="big-button-description">发送者昵称匹配xx 并且 弹幕内容匹配xxx</div>
+                    </div>
+                    <div class="dialog-big-button" @click="addRule('uid-and-content')">
+                        <div class="big-button-label">发送者UID和弹幕内容</div>
+                        <div class="big-button-description">发送者UID匹配xx 并且 弹幕内容匹配xxx</div>
+                    </div>
+                </div>
+            </div>
             <div class="settings-category">
                 <div class="category-name"><b>过滤细则列表</b></div>
                 <div class="category-content">
@@ -819,7 +873,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('fetch')">
                                 <div class="big-button-label">匹配前后缀标记提取弹幕内容</div>
-                                <div class="big-button-description">通过手动标记同传前后缀记号可提取同传弹幕中的内容</br>例：提取前【咩：请给我钱】提取后 &nbsp;请给我钱&nbsp; </div>
+                                <div class="big-button-description">通过手动标记同传前后缀记号可提取同传弹幕中的内容</br>例：提取前【咩：请给我钱】提取后
+                                    &nbsp;请给我钱&nbsp; </div>
                             </div>
                         </div>
                     </div>
@@ -858,10 +913,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                         <div class="dialog-big-button"
                             @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
-                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原包含莫名其妙敏感词的弹幕【开】' : '还原包含莫名其妙敏感词的弹幕【关】' }}
+                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原包含莫名其妙敏感词的弹幕【开】' :
+                                '还原包含莫名其妙敏感词的弹幕【关】' }}
                             </div>
                             <div class="big-button-description">
-                                {{ tryRecoveryFromBannedWords ? '功能已开启，该模式下“Shui觉”将自动还原为“睡觉”' : '例如在某些直播间“睡觉”写成“Shui觉”才能发出的部分敏感词' }}
+                                {{ tryRecoveryFromBannedWords ? '功能已开启，该模式下“Shui觉”将自动还原为“睡觉”' :
+                                '例如在某些直播间“睡觉”写成“Shui觉”才能发出的部分敏感词' }}
                             </div>
                         </div>
                     </div>
@@ -1248,7 +1305,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <div class="dialog-content" v-if="selectedDanmaku">
                 <div class="settings-category">
                     <div class="category-name">请在下方点击文字选中译文的前缀、后缀标识，被标记的标识在规则启用后会被工具过滤
-                    </br>请使用红色标记前缀，青色标记后缀，连续点击按可切换标识类型&nbsp;&nbsp;*例如&nbsp;&nbsp;<b><a style="color:red">咩：【</a></b>请给我钱<b><a style="color:cyan">】</a></b></div>
+                        </br>请使用红色标记前缀，青色标记后缀，连续点击按可切换标识类型&nbsp;&nbsp;*例如&nbsp;&nbsp;<b><a
+                                style="color:red">咩：【</a></b>请给我钱<b><a style="color:cyan">】</a></b></div>
                     <div class="category-content">
                         <div class="characters-list">
                             <div v-for="char in selectedDanmakuCharacters" @click="char.type = (char.type + 1) % 3"
@@ -2180,6 +2238,106 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             color: gray;
             font-size: small;
         }
+
+        .selection-cancel-button {
+            position: absolute;
+            display: flex;
+            left: 30px;
+            right: 30px;
+            bottom: 20%;
+            font-size: 40px;
+            background-color: #444;
+            border-radius: 10px;
+            border: lightgray 1px solid;
+            padding: 20px;
+            color: white;
+            margin: auto;
+        }
+
+        .selection-cancel-button:hover {
+            background-color: #666;
+        }
+
+        .selection-cancel-button:active {
+            background-color: #444;
+        }
+
+        .grouping-items {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .grouping-items > *:nth-child(1) {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .grouping-items > *:nth-last-child(1) {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .grouping-label {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .grouping-input {
+            background-color: transparent;
+            border: rgba(255, 255, 255, 0.2) 1px solid;
+            color: white;
+            font-size: large;
+            flex-grow: 1;
+            height: auto;
+            flex-shrink: 1;
+        }
+
+        .grouping-delete {
+            background-color: transparent;
+            padding: 10px 20px;
+            color: red;
+            font-weight: bold;
+            flex-shrink: 0;
+            /* border: solid 1px rgba(255, 255, 255, 0.2); */
+            border: solid 1px red;
+        }
+
+        .grouping-delete:hover {
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+
+        .grouping-delete:active {
+            background-color: transparent;
+        }
+
+        .grouping-select {
+            background-color: transparent;
+            padding: 10px 20px;
+            color: cyan;
+            font-weight: bold;
+            flex-shrink: 0;
+            border: solid 1px cyan;
+        }
+
+        .grouping-select:hover {
+            background-color: rgba(0, 255, 255, 0.5);
+        }
+
+        .grouping-select:active {
+            background-color: transparent;
+        }
+
+        .grouping-disabled {
+            background-color: transparent;
+            padding: 10px 20px;
+            color: lightgray;
+            font-weight: bold;
+            flex-shrink: 0;
+            /* border: solid 1px rgba(255, 255, 255, 0.2); */
+            border: solid 1px lightgray;
+        }
+
     </style>
     <script>
         const draggable = vuedraggable;
@@ -2473,7 +2631,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         this.clientRunning = true;
                     }
                 },
-                addMember() {
+                addMember(rule) {
                     this.members.push({
                         order: this.currentOrder,
                         name: '匹配规则#' + this.currentOrder,
@@ -2487,6 +2645,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         }
                     });
                     this.currentOrder++;
+                    if (rule) {
+                        let tmp = this.selectedMember;
+                        this.selectedMember = this.members[this.members.length - 1];
+                        this.addRule(rule);
+                        this.selectedMember = tmp;
+                    }
+                    this.closeAddMemberDialog();
                 },
                 deleteMember(index, event) {
                     if (event) {
@@ -2511,6 +2676,68 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 addRule(type) {
                     let ruleId = this.currentRuleId;
                     switch (type) {
+                        case 'uid-and-fetch':
+                            this.selectedMember.rules.push({
+                                id: ruleId,
+                                type: 'and',
+                                rules: [{
+                                    id: ++this.currentRuleId,
+                                    type: 'uid',
+                                    rule: ''
+                                }, {
+                                    id: ++this.currentRuleId,
+                                    type: 'fetch',
+                                    prefix: '',
+                                    suffix: ''
+                                }]
+                            });
+                            break;
+                        case 'user-and-fetch':
+                            this.selectedMember.rules.push({
+                                id: ruleId,
+                                type: 'and',
+                                rules: [{
+                                    id: ++this.currentRuleId,
+                                    type: 'user',
+                                    rule: ''
+                                }, {
+                                    id: ++this.currentRuleId,
+                                    type: 'fetch',
+                                    prefix: '',
+                                    suffix: ''
+                                }]
+                            });
+                            break;
+                        case 'uid-and-content':
+                            this.selectedMember.rules.push({
+                                id: ruleId,
+                                type: 'and',
+                                rules: [{
+                                    id: ++this.currentRuleId,
+                                    type: 'uid',
+                                    rule: ''
+                                }, {
+                                    id: ++this.currentRuleId,
+                                    type: 'content',
+                                    rule: ''
+                                }]
+                            });
+                            break;
+                        case 'user-and-content':
+                            this.selectedMember.rules.push({
+                                id: ruleId,
+                                type: 'and',
+                                rules: [{
+                                    id: ++this.currentRuleId,
+                                    type: 'user',
+                                    rule: ''
+                                }, {
+                                    id: ++this.currentRuleId,
+                                    type: 'content',
+                                    rule: ''
+                                }]
+                            });
+                            break;
                         case 'uid':
                         case 'user':
                         case 'content':
@@ -2550,10 +2777,24 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 deleteRule(parent, subIndex, event) {
                     event.cancelBubble = true;
                     if (parent) {
+                        let rule = parent.rules[subIndex];
+                        if (rule === this.fillingRule) {
+                            this.fillingRule = null;
+                        }
                         parent.rules.splice(subIndex, 1);
                     } else {
+                        let rule = this.selectedMember.rules[subIndex];
+                        if (rule === this.fillingRule) {
+                            this.fillingRule = null;
+                        }
                         this.selectedMember.rules.splice(subIndex, 1);
                     }
+                },
+                openAddMemberDialog() {
+                    this.$refs.addMemberDialog.showModal();
+                },
+                closeAddMemberDialog() {
+                    this.$refs.addMemberDialog.close();
                 },
                 openAddRuleDialog() {
                     this.$refs.addRuleDialog.showModal();
@@ -2838,37 +3079,33 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 openStyleConfig() {
                 },
                 fillFromDanmaku(rule) {
+                    let description;
                     switch (rule.type) {
                         case 'uid':
-                            mosha.createToast({
-                                title: '请选择一条弹幕',
-                                description: '在左侧弹幕列表中点击一条弹幕，以将其发送者UID填入细则中'
-                            }, {
-                                type: 'info',
-                                hideProgressBar: true
-                            });
+                            description = '在左侧弹幕列表中点击一条弹幕，以将其发送者UID填入细则中';
                             break;
                         case 'user':
-                            mosha.createToast({
-                                title: '请选择一条弹幕',
-                                description: '在左侧弹幕列表中点击一条弹幕，以将其发送者用户名填入细则中'
-                            }, {
-                                type: 'info',
-                                hideProgressBar: true
-                            });
+                            description = '在左侧弹幕列表中点击一条弹幕，以将其发送者用户名填入细则中';
                             break;
                         case 'fetch':
+                            description = '在左侧弹幕列表中点击一条弹幕，以将其发送者用户名填入细则中';
                             break;
                         case 'type':
-                            mosha.createToast({
-                                title: '请选择一条弹幕',
-                                description: '在左侧弹幕列表中点击一条弹幕，以将弹幕类型填入细则中'
-                            }, {
-                                type: 'info',
-                                hideProgressBar: true
-                            });
+                            description = '在左侧弹幕列表中点击一条弹幕，以将弹幕类型填入细则中';
                             break;
                     }
+
+                    mosha.createToast({
+                        title: '请选择一条弹幕',
+                        description
+                    }, {
+                        type: 'info',
+                        hideProgressBar: true,
+                        position: 'bottom-right',
+                        timeout: 10000,
+                        transition: 'slide'
+                    });
+
                     this.fillingRule = rule;
                 },
                 selectDanmaku(danmaku) {
@@ -3275,67 +3512,131 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             }
         }
 
+        // app.component('match-content', {
+        //     mixins: [simpleRuleMixin],
+        //     template: `
+        //     <div class="simple-rule-box" @click="onClicked">
+        //         <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
+        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
+        //         <input class="rule-box-input" v-model="rule.rule">
+        //     </div>`
+        // });
+
         app.component('match-content', {
             mixins: [simpleRuleMixin],
             template: `
-            <div class="simple-rule-box" @click="onClicked">
-                <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
-                <input class="rule-box-input" v-model="rule.rule">
+            <div class="grouping-items">
+                <div class="grouping-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
+                <input class="grouping-input" v-model="rule.rule">
+                <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
+        // app.component('fetch-content', {
+        //     mixins: [simpleRuleMixin],
+        //     template: `
+        //     <div class="simple-rule-box" @click="onClicked">
+        //         <div class="floating-area">
+        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
+        //         </div>
+        //         <div class="labeled-item-label">前缀</div>
+        //         <input class="colored-input-input" v-model="rule.prefix" style="width: 0">
+        //         <div class="labeled-item-center">后缀</div>
+        //         <input class="rule-box-input" v-model="rule.suffix" style="width: 0">
+        //     </div>`
+        // });
 
         app.component('fetch-content', {
             mixins: [simpleRuleMixin],
             template: `
-            <div class="simple-rule-box" @click="onClicked">
-                <div class="floating-area">
-                    <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-                    <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                </div>
-                <div class="labeled-item-label">前缀</div>
-                <input class="colored-input-input" v-model="rule.prefix" style="width: 0">
-                <div class="labeled-item-center">后缀</div>
-                <input class="rule-box-input" v-model="rule.suffix" style="width: 0">
+            <div class="grouping-items">
+                <div class="grouping-label">前缀</div>
+                <input class="grouping-input" v-model="rule.prefix" style="width: 0">
+                <div class="grouping-label">后缀</div>
+                <input class="grouping-input" v-model="rule.suffix" style="width: 0">
+                <button class="grouping-select" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+                <button class="grouping-disabled" v-else>选取</button>
+                <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
+        // app.component('match-uid', {
+        //     mixins: [simpleRuleMixin],
+        //     template: `
+        //     <div class="simple-rule-box" @click="onClicked">
+        //         <div class="floating-area">
+        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
+        //         </div>
+        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
+        //         <input class="rule-box-input" v-model="rule.rule" type="number">
+        //     </div>`
+        // });
 
         app.component('match-uid', {
             mixins: [simpleRuleMixin],
             template: `
-            <div class="simple-rule-box" @click="onClicked">
-                <div class="floating-area">
-                    <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-                    <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                </div>
-                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
-                <input class="rule-box-input" v-model="rule.rule" type="number">
+            <div class="grouping-items">
+                <div class="grouping-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
+                <input class="grouping-input" v-model="rule.rule">
+                <button class="grouping-select" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+                <button class="grouping-disabled" v-else>选取</button>
+                <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
+        // app.component('match-user', {
+        //     mixins: [simpleRuleMixin],
+        //     template: `
+        //     <div class="simple-rule-box" @click="onClicked">
+        //         <div class="floating-area">
+        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
+        //         </div>
+        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">昵称{{ rule.inverse ? '不': '' }}是</div>
+        //         <input class="rule-box-input" v-model="rule.rule">
+        //     </div>`
+        // });
 
         app.component('match-user', {
             mixins: [simpleRuleMixin],
             template: `
-            <div class="simple-rule-box" @click="onClicked">
-                <div class="floating-area">
-                    <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-                    <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                </div>
-                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">昵称{{ rule.inverse ? '不': '' }}是</div>
-                <input class="rule-box-input" v-model="rule.rule">
+            <div class="grouping-items">
+                <div class="grouping-label" @click="rule.inverse = !rule.inverse">用户名{{ rule.inverse ? '不': '' }}是</div>
+                <input class="grouping-input" v-model="rule.rule">
+                <button class="grouping-select" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+                <button class="grouping-disabled" v-else>选取</button>
+                <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
+        // app.component('match-type', {
+        //     mixins: [simpleRuleMixin],
+        //     template: `
+        //     <div class="simple-rule-box" @click="onClicked">
+        //         <div class="floating-area">
+        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
+        //         </div>
+        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
+        //         <select class="rule-box-input" v-model="rule.rule">
+        //             <option value="1">普通弹幕</option>
+        //             <option value="4">底端弹幕</option>
+        //             <option value="5">顶端弹幕</option>
+        //             <option value="6">逆向弹幕</option>
+        //             <option value="7">精准定位</option>
+        //             <option value="8">高级弹幕</option>
+        //         </select>
+        //     </div>`
+        // });
 
         app.component('match-type', {
             mixins: [simpleRuleMixin],
             template: `
-            <div class="simple-rule-box" @click="onClicked">
-                <div class="floating-area">
-                    <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-                    <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-                </div>
-                <div class="rule-box-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
-                <select class="rule-box-input" v-model="rule.rule">
+            <div class="grouping-items">
+                <div class="grouping-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
+                <select class="grouping-input" v-model="rule.rule">
                     <option value="1">普通弹幕</option>
                     <option value="4">底端弹幕</option>
                     <option value="5">顶端弹幕</option>
@@ -3343,8 +3644,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <option value="7">精准定位</option>
                     <option value="8">高级弹幕</option>
                 </select>
+                <button class="grouping-select" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
+                <button class="grouping-disabled" v-else>选取</button>
+                <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
 
         app.component('floating-danmaku-window', {
             props: {
@@ -3427,6 +3732,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         const clipboardJS = new ClipboardJS('.copy-button');
     </script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/segmentit@2.0.3/dist/umd/segmentit.min.js"></script> -->
     <script src="./js/segmentit.min.js"></script>
     <script>
         const segmentit = Segmentit.useDefault(new Segmentit.Segment());
