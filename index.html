@@ -770,7 +770,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         </div>
         <dialog ref="addRuleDialog">
             <div class="settings-category">
-                <div class="category-name">要添加的匹配细则详情</div>
+                <div class="category-name"><b>过滤细则列表</b></div>
                 <div class="category-content">
                     <div class="settings-category">
                         <div class="category-name">具体细则【选中后点击细则按钮可切换匹配/不匹配】</div>
@@ -789,7 +789,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             </div>
                             <div class="dialog-big-button" @click="addRule('type')">
                                 <div class="big-button-label">匹配弹幕种类</div>
-                                <div class="big-button-description">只有弹幕种类【如滚动弹幕/底端弹幕】与设置的内容完全相同时才会匹配</div>
+                                <div class="big-button-description">只有弹幕种类【如滚动或底端弹幕】与细则设置完全相同时才会匹配</div>
                             </div>
                         </div>
                     </div>
@@ -807,18 +807,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                     </div>
                     <div class="settings-category">
-                        <div class="category-name">提取弹幕内容</div>
+                        <div class="category-name">仅显示提取后的弹幕内容【导出弹幕后编辑更省心】</div>
                         <div class="category-content">
                             <div class="dialog-big-button" @click="addRule('fetch')">
-                                <div class="big-button-label">使用前后缀提取弹幕内容</div>
-                                <div class="big-button-description">如果你希望获取到去掉前后缀的弹幕内容，则必须使用这条规则</div>
+                                <div class="big-button-label">匹配前后缀标记提取弹幕内容</div>
+                                <div class="big-button-description">通过手动标记同传前后缀记号可提取同传弹幕中的内容</br>例：提取前【咩：请给我钱】提取后 &nbsp;请给我钱&nbsp; </div>
                             </div>
                         </div>
                     </div>
-                    <div class="dialog-big-button" @click="closeAddRuleDialog">
-                        <div class="big-button-label">取消添加</div>
-                        <div class="big-button-description">不添加任何规则，仅关闭该对话框</div>
-                    </div>
+                </div>
+                <div class="dialog-big-button" @click="closeAddRuleDialog">
+                    <div class="big-button-label">取消添加</div>
+                    <div class="big-button-description">不添加任何规则，仅关闭该对话框</div>
                 </div>
             </div>
         </dialog>
@@ -850,10 +850,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                         <div class="dialog-big-button"
                             @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
-                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原敏感词【开】' : '还原敏感词【关】' }}
+                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原包含莫名其妙敏感词的弹幕【开】' : '还原包含莫名其妙敏感词的弹幕【关】' }}
                             </div>
                             <div class="big-button-description">
-                                {{ tryRecoveryFromBannedWords ? '尝试从和谐后的弹幕中还原原始弹幕' : '保留接收到的弹幕内容不动' }}
+                                {{ tryRecoveryFromBannedWords ? '功能已开启，该模式下“Shui觉”将自动还原为“睡觉”' : '例如在某些直播间“睡觉”写成“Shui觉”才能发出的部分敏感词' }}
                             </div>
                         </div>
                     </div>
@@ -1239,7 +1239,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         <dialog ref="bigbangDialog">
             <div class="dialog-content" v-if="selectedDanmaku">
                 <div class="settings-category">
-                    <div class="category-name">在弹幕中选择前后缀。点击字符可以切换选中状态。红色为前缀，蓝色为后缀。</div>
+                    <div class="category-name">请在下方点击文字选中译文的前缀、后缀标识，被标记的标识在规则启用后会被工具过滤
+                    </br>请使用红色标记前缀，青色标记后缀，连续点击按可切换标识类型&nbsp;&nbsp;*例如&nbsp;&nbsp;<b><a style="color:red">咩：【</a></b>请给我钱<b><a style="color:cyan">】</a></b></div>
                     <div class="category-content">
                         <div class="characters-list">
                             <div v-for="char in selectedDanmakuCharacters" @click="char.type = (char.type + 1) % 3"
