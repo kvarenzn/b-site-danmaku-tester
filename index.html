@@ -520,23 +520,23 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             jing: '警'
         });
 
-        const refine = string => string.replaceAll(String.fromCodePoint(0xe0020), '')
-            .replaceAll(String.fromCodePoint(0xe0021), '')
-            .replaceAll(String.fromCodePoint(0xe0022), '')
-            .replaceAll(String.fromCodePoint(0xe0023), '')
-            .replaceAll(String.fromCodePoint(0xe0024), '')
-            .replaceAll(String.fromCodePoint(0xe0025), '')
-            .replaceAll(String.fromCodePoint(0xe0026), '')
-            .replaceAll(String.fromCodePoint(0xe0027), '')
-            .replaceAll(String.fromCodePoint(0xe0028), '')
-            .replaceAll(String.fromCodePoint(0xe0029), '')
-            .replaceAll(/\u0592|\u0594/, '');
+        const refine = string => string.replaceAll(RegExp(String.fromCodePoint(0xe0020), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0021), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0022), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0023), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0024), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0025), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0026), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0027), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0028), 'g'), '')
+            .replaceAll(RegExp(String.fromCodePoint(0xe0029), 'g'), '')
+            .replaceAll(/\u0592|\u0594/g, '');
 
         const recovery = string => {
             for (let pinyin in SENSITIVE_SINGLE_CHARS) {
-                string = string.replaceAll(pinyin, SENSITIVE_SINGLE_CHARS[pinyin]);
+                string = string.replaceAll(RegExp(pinyin, 'g'), SENSITIVE_SINGLE_CHARS[pinyin]);
             }
-            string = string.replaceAll('ロ', '口');
+            string = string.replaceAll(/ロ/g, '口');
             return string;
         };
 
