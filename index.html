@@ -711,6 +711,16 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     弹幕匹配规则为空
                     <br />
                     请点击下方的(+)按钮添加规则
+                    <br />
+                    注意
+                    <br />
+                    规则有优先级属性，可使用鼠标拖动进行排序
+                    <br />
+                    如果规则可匹配的范围广泛，
+                    <br />
+                    则一般使其优先级小于匹配范围狭窄的规则
+                    <br />
+                    例如：规则【发送者匹配A并且弹幕内容匹配XX】需放到规则【发送者匹配A】的上方才能正常工作
                 </div>
                 <button class="floating-round-button" @click="openAddMemberDialog" v-if="currentMode === 0">
                     <i class="fa-solid fa-plus"></i>
@@ -842,23 +852,23 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <div class="category-name"><b>过滤细则列表</b></div>
                         <div class="category-content">
                             <div class="settings-category">
-                                <div class="category-name">具体细则【选中后点击细则按钮可切换匹配/不匹配】</div>
+                                <div class="category-name">具体细则【选中细则后可点击提取按钮从弹幕池中选择弹幕提取信息】</div>
                                 <div class="category-content">
                                     <div class="dialog-big-button" @click="addRule('content')">
                                         <div class="big-button-label">匹配弹幕内容</div>
-                                        <div class="big-button-description">使用正则表达式匹配弹幕内容</div>
+                                        <div class="big-button-description">使用正则表达式匹配弹幕内容&nbsp;&nbsp;点击：内容匹配/内容不匹配字样可切换模式</br>例：设置内容匹配：“我很可爱” 如弹幕中带有“我很可爱”均会视作匹配 </div>
                                     </div>
                                     <div class="dialog-big-button" @click="addRule('uid')">
                                         <div class="big-button-label">匹配弹幕发送者UID</div>
-                                        <div class="big-button-description">只有发送者UID与设置的内容完全相同时才会匹配</div>
+                                        <div class="big-button-description">只有发送者UID与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：UID是/UID不是字样可切换模式</br>例：设置UID是：“12345” 则UID为“12345”的用户发送的任意弹幕均会视作匹配 </div>
                                     </div>
                                     <div class="dialog-big-button" @click="addRule('user')">
                                         <div class="big-button-label">匹配弹幕发送者昵称</div>
-                                        <div class="big-button-description">只有发送者昵称与设置的内容完全相同时才会匹配</div>
+                                        <div class="big-button-description">只有发送者用户名与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：用户名是/用户名不是字样可切换模式</br>例：设置用户名是：“小明” 则用户名为“小明”的用户发送的任意弹幕均会视作匹配 </div>
                                     </div>
                                     <div class="dialog-big-button" @click="addRule('type')">
                                         <div class="big-button-label">匹配弹幕种类</div>
-                                        <div class="big-button-description">只有弹幕种类【如滚动或底端弹幕】与细则设置完全相同时才会匹配</div>
+                                        <div class="big-button-description">只有弹幕种类与细则设置完全相同时才会匹配&nbsp;&nbsp;点击：弹幕是/弹幕不是字样可切换模式</br>例：设置弹幕种类是：“普通弹幕”则检测到任意“普通弹幕”均会视作匹配 </div>
                                     </div>
                                 </div>
                             </div>
