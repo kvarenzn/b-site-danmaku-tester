@@ -722,15 +722,26 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <br />
                     请点击下方的(+)按钮添加规则
                     <br />
+                    <br />
                     注意
                     <br />
-                    规则有优先级属性，可使用鼠标拖动进行排序
+                    规则带有优先级区分
+                    <br /> 
+                    可使用鼠标拖动规则左端排序
+                    <br /> 
+                    规则在列表中位置越靠上优先级越高
                     <br />
-                    如果规则可匹配的范围广泛，
                     <br />
-                    则一般使其优先级小于匹配范围狭窄的规则
+                    在同时使用多条近似规则的情况下
+                    <br /> 
+                    需将匹配细则复杂的规则
                     <br />
-                    例如：规则【发送者匹配A并且弹幕内容匹配XX】需放到规则【发送者匹配A】的上方才能正常工作
+                    排序至匹配细则简单的规则上方才能正常工作
+                    <br />
+                    <br />
+                    举例说明
+                    <br />
+                    复杂规则【发送者匹配A并且弹幕内容匹配AB】<br />必须排在简单规则【匹配发送者A】上方<br />否则简单的规则优先匹配成功后<br />工具不会继续匹配复杂的规则
                 </div>
                 <button class="floating-round-button" @click="openAddMemberDialog" v-if="currentMode === 0">
                     <i class="fa-solid fa-plus"></i>
