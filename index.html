@@ -2569,6 +2569,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     if (this.clientRunning) {
                         this.disconnect();
                     }
+                    this.clearDanmakuList();
                     await this.connect();
                 },
                 async onEnsureClicked() {
