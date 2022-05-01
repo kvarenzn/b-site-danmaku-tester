@@ -537,7 +537,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v4.26 "KEY" build
+            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v5.2 "BELT" build
                 1&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
@@ -697,14 +697,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     注意
                     <br />
                     规则带有优先级区分
-                    <br /> 
+                    <br />
                     可使用鼠标拖动规则左端排序
-                    <br /> 
+                    <br />
                     规则在列表中位置越靠上优先级越高
                     <br />
                     <br />
                     在同时使用多条近似规则的情况下
-                    <br /> 
+                    <br />
                     需将匹配细则复杂的规则
                     <br />
                     排序至匹配细则简单的规则上方才能正常工作
@@ -1165,8 +1165,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     </div>
                                     <div class="grouping-items">
                                         <div class="grouping-label">字号</div>
-                                        <input class="grouping-input" v-model="selectedStyle.fontSize"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.fontSize" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                     <div
@@ -1191,22 +1190,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 <div class="category-content">
                                     <div class="grouping-items">
                                         <div class="grouping-label">主要颜色</div>
-                                        <input class="grouping-input" v-model="selectedStyle.primaryColor"
-                                            type="color">
-                                    </div>
-                                    <div class="grouping-items">
+                                        <input class="grouping-input" v-model="selectedStyle.primaryColor" type="color">
                                         <div class="grouping-label">次要颜色</div>
                                         <input class="grouping-input" v-model="selectedStyle.secondaryColor"
                                             type="color">
+
                                     </div>
                                     <div class="grouping-items">
                                         <div class="grouping-label">边框颜色</div>
-                                        <input class="grouping-input" v-model="selectedStyle.outlineColor"
-                                            type="color">
-                                    </div>
-                                    <div class="grouping-items">
+                                        <input class="grouping-input" v-model="selectedStyle.outlineColor" type="color">
                                         <div class="grouping-label">阴影颜色</div>
                                         <input class="grouping-input" v-model="selectedStyle.backColor" type="color">
+
                                     </div>
                                 </div>
                             </div>
@@ -1217,20 +1212,17 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 <div class="category-content">
                                     <div class="grouping-items">
                                         <div class="grouping-label">左边距</div>
-                                        <input class="grouping-input" v-model="selectedStyle.marginL"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.marginL" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                     <div class="grouping-items">
                                         <div class="grouping-label">右边距</div>
-                                        <input class="grouping-input" v-model="selectedStyle.marginR"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.marginR" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                     <div class="grouping-items">
                                         <div class="grouping-label">垂直边距</div>
-                                        <input class="grouping-input" v-model="selectedStyle.marginV"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.marginV" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                     <div class="grouping-items">
@@ -1254,8 +1246,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 <div class="category-content">
                                     <div class="grouping-items">
                                         <div class="grouping-label">边框宽</div>
-                                        <input class="grouping-input" v-model="selectedStyle.outline"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.outline" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                     <div class="grouping-items">
@@ -1287,8 +1278,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                     </div>
                                     <div class="grouping-items">
                                         <div class="grouping-label">文字间距</div>
-                                        <input class="grouping-input" v-model="selectedStyle.spacing"
-                                            type="number">
+                                        <input class="grouping-input" v-model="selectedStyle.spacing" type="number">
                                         <div class="grouping-label">像素</div>
                                     </div>
                                 </div>
@@ -1298,8 +1288,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </div>
                 <div class="settings-category" style="flex-grow: 1;">
                     <div class="category-name">预览</div>
-                    <div class="category-content"
-                        style="flex-grow: 1; overflow: hidden; justify-content: center;">
+                    <div class="category-content" style="flex-grow: 1; overflow: hidden; justify-content: center;">
                         <div :style="previewStyle">{{previewText}}</div>
                     </div>
                 </div>
