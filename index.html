@@ -538,20 +538,16 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <div id="app">
         <header v-if="currentMode === 0">
             <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v5.2 "BELT" build
-                1&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+                2&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
-            <div class="input-with-button">
-                <input v-model="roomId" placeholder="请输入直播间号码" class="room-id-input"
+            <div class="input-with-button" style="margin-right: 10%;">
+                <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
                     @keyup.enter.native="onEnsureClicked">
-                <button class="ensure-button" @click="onEnsureClicked">{{ clientRunning ? '断开' : '连接' }}</button>
+                <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' : '连接')
+                    : '搜索' }}</button>
             </div>
-            <button class="round-button"
-                style="width: 30px; height: 30px; font-size: 12px; margin-right: 10%; margin-top: auto; margin-bottom: auto;"
-                @click="openSearchDialog">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </button>
         </header>
         <div class="main">
             <div class="danmaku-view">
@@ -1363,13 +1359,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         </dialog>
         <dialog ref="searchUserDialog">
             <div class="dialog-content">
-                <div class="grouping-items">
-                    <div class="grouping-label">搜索主播</div>
-                    <input class="grouping-input" v-model="searchUserText" @keyup.enter.native="goSearchUser"
-                        style="min-width: 15vw;" placeholder="可输入昵称或缩写">
-                    <button class="ensure-button" @click="goSearchUser">搜索</button>
-                </div>
-                <div class="settings-category" v-if="userSearchResult.length">
+                <div class="settings-category">
                     <div class="category-name">搜索结果</div>
                     <div class="category-content">
                         <div class="scroll-list" style="min-height: 30vh; row-gap: 10px">
@@ -1382,8 +1372,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                     </div>
                 </div>
-                <div class="dialog-big-button" @click="closeSearchDialog">
-                    <div class="big-button-label">取消搜索</div>
+                <div class="dialog-big-button" @click="cancelSearch">
+                    <div class="big-button-label">取消</div>
                 </div>
             </div>
         </dialog>
@@ -2576,10 +2566,24 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     this.clientRunning = true;
                 },
                 async reconnect() {
-                    this.disconnect();
+                    if (this.clientRunning) {
+                        this.disconnect();
+                    }
                     await this.connect();
                 },
                 async onEnsureClicked() {
+                    if (!this.roomIdIsNumber) {
+                        if (await this.goSearchUser()) {
+                            this.openSearchDialog();
+                        } else {
+                            if (this.clientRunning) {
+                                this.roomId = client.roomID;
+                            } else {
+                                this.roomId = '';
+                            }
+                        }
+                        return;
+                    }
                     if (this.clientRunning) {
                         this.disconnect();
                     } else {
@@ -3165,23 +3169,52 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     return convertTimestamp(timestamp);
                 },
                 openSearchDialog() {
-                    this.searchUserText = '';
-                    this.userSearchResult = [];
                     this.$refs.searchUserDialog.showModal();
                 },
                 closeSearchDialog() {
                     this.$refs.searchUserDialog.close();
                 },
-                async goSearchUser() {
-                    console.log(this.searchUserText);
-                    if (!this.searchUserText) {
-                        return;
+                cancelSearch() {
+                    if (this.clientRunning) {
+                        this.roomId = client.roomID;
+                    } else {
+                        this.roomId = '';
                     }
-                    let result = await (await fetch(`https://api.danmaku.meagames.cn/search_user/${this.searchUserText}`)).json();
+                    this.closeSearchDialog();
+                },
+                async goSearchUser() {
+                    if (!this.roomId) {
+                        mosha.createToast({
+                            title: '搜索失败',
+                            description: `搜索内容不能为空`
+                        }, {
+                            type: 'warning',
+                            hideProgressBar: true
+                        });
+                        return false;
+                    }
+                    let result = await (await fetch(`https://api.danmaku.meagames.cn/search_user/${this.roomId}`)).json();
                     if (result.error) {
-                        return;
+                        mosha.createToast({
+                            title: '搜索失败',
+                            description: `错误: ${result.error}`
+                        }, {
+                            type: 'warning',
+                            hideProgressBar: true
+                        });
+                        return false;
                     }
                     let users = result.data;
+                    if (!users || !users.length) {
+                        mosha.createToast({
+                            title: '搜索失败',
+                            description: `搜索结果为空`
+                        }, {
+                            type: 'warning',
+                            hideProgressBar: true
+                        });
+                        return false;
+                    }
                     this.userSearchResult = [];
                     for (let user of users) {
                         this.userSearchResult.push({
@@ -3191,6 +3224,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             fans: user.fans
                         });
                     }
+                    return true;
                 },
                 selectSearchResult(roomId) {
                     this.roomId = roomId;
@@ -3258,6 +3292,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 previewStyle() {
                     return this.calcPreviewStyle(this.selectedStyle);
+                },
+                roomIdIsNumber() {
+                    return !isNaN(+this.roomId) && parseInt(this.roomId) === +this.roomId;
                 }
             },
             components: {
@@ -3329,7 +3366,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 }
                 this.checkSwitchMode();
                 if (this.currentMode === 1) {
-                    await this.onEnsureClicked();
+                    await this.connect();
                     this.switchMode(1);
                 }
 
