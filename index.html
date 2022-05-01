@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, initial-scale=1.0">
-    <title>弹幕测试工具</title>
+    <title>紫金葫芦（暂定）</title>
     <!-- <script src="https://cdn.staticfile.org/pako/2.0.4/pako.min.js"></script> -->
     <script src="./js/pako.min.js"></script>
     <script>
@@ -39,21 +39,9 @@
                 this.handler = null;
             }
 
-            // addHandler(handler) {
-            //     console.log('add handler');
-            //     this.handlers.push(handler);
-            // }
-
             setHandler(handler) {
                 this.handler = handler;
             }
-
-            // removeHandler(handler) {
-            //     let index = this.handlers.indexOf(handler);
-            //     if (index >= 0) {
-            //         this.handlers.pop(index);
-            //     }
-            // }
 
             pack(data, operation) {
                 let body = this.encoder.encode(JSON.stringify(data));
@@ -180,9 +168,6 @@
             }
 
             processJSONMessage(data) {
-                // for (let handler of this.handlers) {
-                //     handler(data);
-                // }
                 if (this.handler) {
                     this.handler(data);
                 }
@@ -401,22 +386,6 @@
             settings.room = room;
             return settings;
         };
-
-        const decodeRulesEnhanced = decodeRules;
-
-        // const decodeRulesEnhanced = data => {
-        //     let result = '';
-        //     for (let i = 0; i < data.length; i++) {
-        //         let char = data[i];
-        //         let charCode = data.charCodeAt(i);
-        //         if ('陶醉译者注于「0123456789」：'.indexOf(char) != -1 || (charCode >= 0x3600 && charCode < 0x3600 + 4096)) {
-        //             result += char;
-        //         }
-        //     }
-        //     return decodeRules(result);
-        // };
-
-
     </script>
     <script>
         const generateASSHeader = title => `[Script Info]
@@ -487,6 +456,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         };
     </script>
     <script>
+        // disabled temporarily
+
         // from https://stackoverflow.com/a/20736292
         // by @stevendaniels
         // modified to match without cases
@@ -921,15 +892,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <div class="settings-category">
                     <div class="category-name">弹幕历史记录设置</div>
                     <div class="category-content">
-                        <div class="labeled-item">
-                            <div class="labeled-item-label">弹幕列表最多记录</div>
-                            <input class="colored-input-input" v-model="danmakuHistoryCount" type="number">
-                            <div class="labeled-item-right">条弹幕</div>
+                        <div class="grouping-items">
+                            <div class="grouping-label">弹幕列表最多记录</div>
+                            <input class="grouping-input" v-model="danmakuHistoryCount" type="number">
+                            <div class="grouping-label">条弹幕</div>
                         </div>
-                        <div class="labeled-item" v-if="currentMode === 0">
-                            <div class="labeled-item-label">悬浮窗内最多记录</div>
-                            <input class="colored-input-input" v-model="selectedDanmakuHistoryCount" type="number">
-                            <div class="labeled-item-right">条弹幕</div>
+                        <div class="grouping-items" v-if="currentMode === 0">
+                            <div class="grouping-label">悬浮窗内最多记录</div>
+                            <input class="grouping-input" v-model="selectedDanmakuHistoryCount" type="number">
+                            <div class="grouping-label">条弹幕</div>
                         </div>
                     </div>
                 </div>
@@ -978,9 +949,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <div class="category-content">
                             <div class="category-content">
                                 <div class="category-name">请选择过滤模式【点击下拉可切换】</div>
-                                <div class="labeled-item">
-                                    <div class="labeled-item-label">配置模式为</div>
-                                    <select v-model="exportConfig.mode" class="labeled-item-item">
+                                <div class="grouping-items">
+                                    <div class="grouping-label">配置模式为</div>
+                                    <select v-model="exportConfig.mode" class="grouping-input">
                                         <option value="0">标准模式</option>
                                         <option value="1">沉浸模式</option>
                                     </select>
@@ -995,9 +966,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                             <div class="big-button-description">{{ exportConfig.forSpecificRoom ?
                                                 '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
                                         </div>
-                                        <div class="labeled-item" v-if="exportConfig.forSpecificRoom">
-                                            <div class="labeled-item-label">直播间号码或主播用户名</div>
-                                            <input class="labeled-item-item" v-model="exportConfig.specificRoomID">
+                                        <div class="grouping-items" v-if="exportConfig.forSpecificRoom">
+                                            <div class="grouping-label">直播间号码或主播用户名</div>
+                                            <input class="grouping-input" v-model="exportConfig.specificRoomID">
                                         </div>
                                     </div>
                                 </div>
@@ -1130,18 +1101,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="settings-category">
                                 <div class="category-name">杂项设置【点击按钮可切换：是否跳转直播间&是否追加或者替换当前列表已有规则】</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">导入后切换模式到</div>
-                                        <select v-model="importConfig.switchToMode" class="labeled-item-item">
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">导入后切换模式到</div>
+                                        <select v-model="importConfig.switchToMode" class="grouping-input">
                                             <option value="0">标准模式</option>
                                             <option value="1">沉浸模式</option>
                                         </select>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label"
                                             @click="importConfig.goToRoom = !importConfig.goToRoom">
                                             导入后{{importConfig.goToRoom ? '' : '不'}}跳转直播间</div>
-                                        <input class="labeled-item-item" v-model="importConfig.specificRoomID"
+                                        <input class="grouping-input" v-model="importConfig.specificRoomID"
                                             type="number" :disabled="!importConfig.goToRoom">
                                     </div>
                                     <div class="dialog-big-button"
@@ -1173,19 +1144,19 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <div class="settings-category">
                     <div class="category-name">"{{ selectedStyle.name }}"的字幕样式设置</div>
                     <div class="category-content flex-row">
-                        <div class="flex-column">
+                        <div class="flex-column substyle-subconfig">
                             <div class="settings-category">
                                 <div class="category-name">字体设置</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">字体名称</div>
-                                        <input class="labeled-item-item" v-model="selectedStyle.fontName">
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">字体名称</div>
+                                        <input class="grouping-input" v-model="selectedStyle.fontName">
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">字号</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.fontSize"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">字号</div>
+                                        <input class="grouping-input" v-model="selectedStyle.fontSize"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
                                     <div
                                         style="display: flex; color: white; flex-direction: row; justify-content: space-between; column-gap: 20px;">
@@ -1207,53 +1178,53 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="settings-category">
                                 <div class="category-name">颜色设置</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">主要颜色</div>
-                                        <input class="labeled-item-item" v-model="selectedStyle.primaryColor"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">主要颜色</div>
+                                        <input class="grouping-input" v-model="selectedStyle.primaryColor"
                                             type="color">
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">次要颜色</div>
-                                        <input class="labeled-item-item" v-model="selectedStyle.secondaryColor"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">次要颜色</div>
+                                        <input class="grouping-input" v-model="selectedStyle.secondaryColor"
                                             type="color">
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">边框颜色</div>
-                                        <input class="labeled-item-item" v-model="selectedStyle.outlineColor"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">边框颜色</div>
+                                        <input class="grouping-input" v-model="selectedStyle.outlineColor"
                                             type="color">
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">阴影颜色</div>
-                                        <input class="labeled-item-item" v-model="selectedStyle.backColor" type="color">
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">阴影颜色</div>
+                                        <input class="grouping-input" v-model="selectedStyle.backColor" type="color">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex-column">
+                        <div class="flex-column substyle-subconfig">
                             <div class="settings-category">
                                 <div class="category-name">布局设置</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">左边距</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.marginL"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">左边距</div>
+                                        <input class="grouping-input" v-model="selectedStyle.marginL"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">右边距</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.marginR"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">右边距</div>
+                                        <input class="grouping-input" v-model="selectedStyle.marginR"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">垂直边距</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.marginV"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">垂直边距</div>
+                                        <input class="grouping-input" v-model="selectedStyle.marginV"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">对齐到</div>
-                                        <select class="labeled-item-item" v-model="selectedStyle.alignment">
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">对齐到</div>
+                                        <select class="grouping-input" v-model="selectedStyle.alignment">
                                             <option value="1">左下角</option>
                                             <option value="2">底部</option>
                                             <option value="3">右下角</option>
@@ -1270,60 +1241,60 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="settings-category">
                                 <div class="category-name">样式设置</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">边框宽</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.outline"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">边框宽</div>
+                                        <input class="grouping-input" v-model="selectedStyle.outline"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">阴影宽</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.shadow" type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">阴影宽</div>
+                                        <input class="grouping-input" v-model="selectedStyle.shadow" type="number">
+                                        <div class="grouping-label">像素</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex-column">
+                        <div class="flex-column substyle-subconfig">
                             <div class="settings-category">
                                 <div class="category-name">杂项设置</div>
                                 <div class="category-content">
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">水平缩放</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.scaleX" type="number">
-                                        <div class="labeled-item-right">%</div>
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">水平缩放</div>
+                                        <input class="grouping-input" v-model="selectedStyle.scaleX" type="number">
+                                        <div class="grouping-label">%</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">垂直缩放</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.scaleY" type="number">
-                                        <div class="labeled-item-right">%</div>
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">垂直缩放</div>
+                                        <input class="grouping-input" v-model="selectedStyle.scaleY" type="number">
+                                        <div class="grouping-label">%</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">旋转</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.angle" type="number">
-                                        <div class="labeled-item-right">度</div>
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">旋转</div>
+                                        <input class="grouping-input" v-model="selectedStyle.angle" type="number">
+                                        <div class="grouping-label">度</div>
                                     </div>
-                                    <div class="labeled-item">
-                                        <div class="labeled-item-label">文字间距</div>
-                                        <input class="colored-input-input" v-model="selectedStyle.spacing"
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">文字间距</div>
+                                        <input class="grouping-input" v-model="selectedStyle.spacing"
                                             type="number">
-                                        <div class="labeled-item-right">像素</div>
+                                        <div class="grouping-label">像素</div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="settings-category" style="flex-grow: 1;">
-                                <div class="category-name">预览</div>
-                                <div class="category-content"
-                                    style="flex-grow: 1; overflow: hidden; justify-content: center;">
-                                    <div :style="previewStyle">{{previewText}}</div>
-                                </div>
-                            </div>
-                            <div class="labeled-item">
-                                <div class="labeled-item-label">预览文本</div>
-                                <input class="labeled-item-item" v-model="previewText">
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="settings-category" style="flex-grow: 1;">
+                    <div class="category-name">预览</div>
+                    <div class="category-content"
+                        style="flex-grow: 1; overflow: hidden; justify-content: center;">
+                        <div :style="previewStyle">{{previewText}}</div>
+                    </div>
+                </div>
+                <div class="grouping-items">
+                    <div class="grouping-label">预览文本</div>
+                    <input class="grouping-input" v-model="previewText">
                 </div>
             </div>
         </dialog>
@@ -1369,14 +1340,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <div class="settings-category">
                     <div class="category-name">导出设置</div>
                     <div class="category-content">
-                        <div class="labeled-item">
-                            <div class="labeled-item-label">字幕标题</div>
-                            <input class="labeled-item-item" v-model="subtitleTitle">
+                        <div class="grouping-items">
+                            <div class="grouping-label">字幕标题</div>
+                            <input class="grouping-input" v-model="subtitleTitle">
                         </div>
-                        <div class="labeled-item">
-                            <div class="labeled-item-label">文件名</div>
-                            <input class="colored-input-input" v-model="exportFileName">
-                            <div class="labeled-item-right">.ass</div>
+                        <div class="grouping-items">
+                            <div class="grouping-label">文件名</div>
+                            <input class="grouping-input" v-model="exportFileName">
+                            <div class="grouping-label">.ass</div>
                         </div>
                     </div>
                 </div>
@@ -1392,10 +1363,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         </dialog>
         <dialog ref="searchUserDialog">
             <div class="dialog-content">
-                <div class="labeled-item">
-                    <div class="labeled-item-label">搜索主播</div>
-                    <input class="colored-input-input" v-model="searchUserText" @keyup.enter.native="goSearchUser"
-                        placeholder="可输入昵称或缩写">
+                <div class="grouping-items">
+                    <div class="grouping-label">搜索主播</div>
+                    <input class="grouping-input" v-model="searchUserText" @keyup.enter.native="goSearchUser"
+                        style="min-width: 15vw;" placeholder="可输入昵称或缩写">
                     <button class="ensure-button" @click="goSearchUser">搜索</button>
                 </div>
                 <div class="settings-category" v-if="userSearchResult.length">
@@ -1451,6 +1422,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         </floating-danmaku-window>
     </div>
     <style>
+        body {
+            margin: 0;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+            background-color: #232323;
+        }
+
         textarea {
             min-width: 40vw;
             min-height: 40vh;
@@ -1485,21 +1468,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         .tooltip:hover .tooltip-content {
             visibility: visible;
             opacity: 1;
-        }
-
-        .popup-dialog-background {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .popup-dialog {
-            width: 50vw;
-            height: 50vh;
-            position: fixed;
-            left: 25%;
-            top: 25%;
         }
 
         dialog {
@@ -1595,68 +1563,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             margin: 10px;
         }
 
-        .simple-rule-box {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            position: relative;
-        }
-
-        .simple-rule-box:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .rule-box-label {
-            border-radius: 10px 0 0 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            color: white;
-        }
-
-        .rule-box-input {
-            border-radius: 0 10px 10px 0;
-            background-color: transparent;
-            border: rgba(255, 255, 255, 0.2) 1px solid;
-            color: white;
-            font-size: large;
-            flex-grow: 1;
-        }
-
-        .rule-box-input-center {
-            border-radius: 0 10px 10px 0;
-            background-color: transparent;
-            border: rgba(255, 255, 255, 0.2) 1px solid;
-            color: white;
-            font-size: large;
-            flex-grow: 1;
-        }
-
-        .rule-input {
-            background-color: transparent;
-            color: white;
-            border-radius: 5px;
-            border: rgba(255, 255, 255, 0.2) 1px solid;
-        }
-
-        .rule-checkbox {
-            background-color: transparent;
-            color: white;
-        }
-
         span {
             color: white;
-        }
-
-        body {
-            margin: 0;
-        }
-
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-height: 100vh;
-            background-color: #232323;
         }
 
         header {
@@ -1826,6 +1734,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             justify-content: space-between;
         }
 
+        .substyle-subconfig {
+            flex-basis: 33.3%;
+            min-width: 360px;
+        }
+
         .members-view {
             display: flex;
             flex-direction: column;
@@ -1954,21 +1867,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: transparent;
         }
 
-        .fill-button {
-            background-color: transparent;
-            border: cyan 1px solid;
-            color: cyan;
-            border-radius: 3px;
-        }
-
-        .fill-button:hover {
-            background-color: rgba(0, 255, 255, 0.5);
-        }
-
-        .fill-button:active {
-            background-color: transparent;
-        }
-
         .round-button {
             background-color: gray;
             border: hidden;
@@ -2035,6 +1933,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: transparent;
             color: lightgray;
             font-size: 24px;
+            z-index: 114514;
         }
 
         .floating-flag {
@@ -2123,55 +2022,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .labeled-item {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-        }
-
-        .labeled-item-label {
-            border-radius: 10px 0 0 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .labeled-item-item {
-            border-radius: 0 10px 10px 0;
-            background-color: transparent;
-            border: rgba(255, 255, 255, 0.2) 1px solid;
-            color: white;
-            font-size: large;
-            flex-grow: 1;
-            height: auto;
-            flex-shrink: 1;
-        }
-
-        .labeled-item-center {
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .labeled-item-right {
-            border-radius: 0 10px 10px 0;
-            background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .colored-input-input {
-            background-color: transparent;
-            border: rgba(255, 255, 255, 0.2) 1px solid;
-            color: white;
-            font-size: large;
-            flex-grow: 1;
-            flex-shrink: 1;
-        }
-
         .sub-scroll-list {
             overflow-y: scroll;
             overflow-y: overlay;
@@ -2209,39 +2059,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         select option {
             background-color: #222;
-        }
-
-        /* swipe delete */
-        .swipe-delete-item {
-            position: relative;
-            display: flex;
-            flex-direction: row;
-        }
-
-        .swipe-delete-item .swipe-delete-content {
-            flex-grow: 1;
-        }
-
-        .swipe-delete-item .swipe-delete-buttons {
-            display: flex;
-            position: absolute;
-            right: -10px;
-            top: 0;
-            height: 100%;
-            transform: translateX(100%);
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .swipe-delete-item .swipe-delete-button {
-            color: red;
-            font-size: 40px;
-        }
-
-        .swipe-delete-outer {
-            position: relative;
-            width: 100%;
-            overflow-x: hidden;
         }
 
         /* Chrome scrollbar styles */
@@ -2362,6 +2179,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             color: white;
         }
 
+        /* grouping items */
+
         .grouping-items {
             display: flex;
             flex-direction: row;
@@ -2373,12 +2192,14 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .grouping-items>*:nth-child(1) {
-            border-radius: 10px 0 0 10px;
+        .grouping-items>:nth-child(1) {
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
         }
 
-        .grouping-items>*:nth-last-child(1) {
-            border-radius: 0 10px 10px 0;
+        .grouping-items>:nth-last-child(1) {
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
 
         .grouping-label {
@@ -2586,171 +2407,183 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     }
                     this.currentMode = mode;
                 },
+                disconnect() {
+                    client.stop();
+                    this.clientRunning = false;
+                    document.title = '紫金葫芦（暂定）';
+                },
+                async connect() {
+                    let roomId = +this.roomId;
+                    if (isNaN(roomId)) {
+                        return;
+                    }
+                    this.roomTitle = '';
+                    this.liverName = '';
+                    try {
+                        let result = await (await fetch('https://api.danmaku.meagames.cn/room_init/' + roomId)).json();
+                        if (result.data) {
+                            let data = result.data;
+                            if (roomId != data.room_id) {
+                                mosha.createToast({
+                                    title: '直播间号自动转换',
+                                    description: `${roomId}是短直播间号，已自动转换为真正的房间号${data.room_id}`
+                                }, {
+                                    type: 'info',
+                                    hideProgressBar: true
+                                });
+                            }
+                            this.roomId = data.room_id;
+                            this.roomLiving = data.live_status;
+                            this.livingStart = data.live_time * 1000;
+                            let roomInfo = await (await fetch('https://api.danmaku.meagames.cn/room_info/' + roomId)).json();
+                            if (roomInfo.data) {
+                                this.roomTitle = roomInfo.data.title;
+                            }
+                            let liverInfo = await (await fetch('https://api.danmaku.meagames.cn/user_info/' + data.uid)).json();
+                            if (liverInfo.data) {
+                                this.liverName = liverInfo.data.name;
+                                document.title = '紫金葫芦@' + this.liverName + '';
+                            }
+
+                            if (this.roomLiving != 1) {
+                                mosha.createToast({
+                                    title: '直播间未开播',
+                                    description: '当前直播间未开播，接收到的弹幕只是虚空聊天'
+                                }, {
+                                    type: 'warning',
+                                    hideProgressBar: true
+                                });
+                            } else {
+                                mosha.createToast({
+                                    title: '已成功连接到直播',
+                                    description: `${roomInfo.data.title}<br/>开播时间：${new Date(this.livingStart).toLocaleString()}`
+                                }, {
+                                    type: 'info',
+                                    hideProgressBar: true
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.log('fetch failed');
+                    }
+                    client.setHandler(msg => {
+                        if (msg.cmd == 'DANMU_MSG') {
+                            this.beforeDanmakuUpdate();
+
+                            let user = msg.info[2];
+                            let danmaku = {
+                                id: this.danmakuList.length,
+                                user: user[1],
+                                uid: user[0],
+                                timestamp: msg.info[0][4],
+                                time: new Date(msg.info[0][4]).toLocaleString(),
+                                type: msg.info[0][1],
+                                content: msg.info[1],
+                                original: '',
+                                member: null
+                            };
+
+                            if (this.tryRecoveryFromBannedWords) {
+                                let recovered = recovery(danmaku.content);
+                                danmaku.content = refine(danmaku.content);
+                                recovered = refine(recovered);
+                                if (recovered !== danmaku.content) {
+                                    danmaku.original = danmaku.content;
+                                    danmaku.content = recovered;
+                                }
+                            }
+
+                            for (let member of this.members) {
+                                if (member.enabled && member.ruleMatcher) {
+                                    let result = member.ruleMatcher(danmaku);
+                                    if (result) {
+                                        danmaku.member = member;
+                                        if (result.groups && result.groups.content) {
+                                            danmaku.inner = result.groups.content;
+                                        }
+                                        if (member.action == 'highlight') {
+                                            if (this.currentMode === 0) {
+                                                if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
+                                                    this.selectedDanmakuList.shift();
+                                                }
+                                                this.selectedDanmakuList.push(danmaku);
+                                            }
+                                            if (this.recordingDanmaku) {
+                                                this.recordDanmakuList.push(danmaku);
+                                            }
+                                            if (Notification.permission === 'granted' && this.currentMode === 0) {
+                                                // send desktop notification
+                                                if (navigator.platform === 'Win32') {
+                                                    // try close and resend notification
+                                                    let key = danmaku.member.name + danmaku.member.order;
+                                                    if (this.counters[key] === undefined) {
+                                                        this.counters[key] = 0;
+                                                    }
+                                                    this.counters[key]++;
+                                                    if (this.counters[key] > 80) {
+                                                        let notification = new Notification(danmaku.member.name, {
+                                                            tag: danmaku.member.name,
+                                                            body: danmaku.content
+                                                        });
+                                                        notification.onshow = () => {
+                                                            notification.close();
+                                                        };
+                                                        this.counters[key] = 0;
+                                                    }
+                                                }
+                                                let notification = new Notification(danmaku.member.name, {
+                                                    tag: danmaku.member.name,
+                                                    body: danmaku.inner ? danmaku.inner : danmaku.content,
+                                                });
+                                            }
+                                        } else if (this.currentMode === 1) {
+                                            danmaku.member = null;
+                                            continue;
+                                        } else if (this.deleteIgnoreDanmaku) {
+                                            return;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            if (this.currentMode === 0 || (this.currentMode === 1 && danmaku.member)) {
+                                if (this.danmakuList.length > this.danmakuHistoryCount) {
+                                    this.danmakuList.shift();
+                                }
+                                this.danmakuList.push(danmaku);
+                                this.afterDanmakuUpdate();
+                            }
+                        } else if (msg.cmd === 'LIVE') {
+                            this.livingStart = msg.live_time * 1000;
+                            this.roomLiving = 1;
+                            mosha.createToast({
+                                title: '主播已开播',
+                                description: `开播时间: ${new Date(this.livingStart).toLocaleDateString()}`
+                            }, {
+                                type: 'info',
+                                hideProgressBar: true
+                            });
+                        } else if (msg.cmd === 'PREPARING') {
+                            mosha.createToast({
+                                title: '主播已下播'
+                            }, {
+                                type: 'info',
+                                hideProgressBar: true
+                            });
+                        }
+                    });
+                    client.start(roomId);
+                    this.clientRunning = true;
+                },
+                async reconnect() {
+                    this.disconnect();
+                    await this.connect();
+                },
                 async onEnsureClicked() {
                     if (this.clientRunning) {
-                        client.stop();
-                        this.clientRunning = false;
+                        this.disconnect();
                     } else {
-                        let roomId = +this.roomId;
-                        if (isNaN(roomId)) {
-                            return;
-                        }
-                        this.roomTitle = '';
-                        this.liverName = '';
-                        try {
-                            let result = await (await fetch('https://api.danmaku.meagames.cn/room_init/' + roomId)).json();
-                            if (result.data) {
-                                let data = result.data;
-                                if (roomId != data.room_id) {
-                                    mosha.createToast({
-                                        title: '直播间号自动转换',
-                                        description: `${roomId}是短直播间号，已自动转换为真正的房间号${data.room_id}`
-                                    }, {
-                                        type: 'info',
-                                        hideProgressBar: true
-                                    });
-                                }
-                                this.roomId = data.room_id;
-                                this.roomLiving = data.live_status;
-                                this.livingStart = data.live_time * 1000;
-                                let roomInfo = await (await fetch('https://api.danmaku.meagames.cn/room_info/' + roomId)).json();
-                                if (roomInfo.data) {
-                                    this.roomTitle = roomInfo.data.title;
-                                }
-                                let liverInfo = await (await fetch('https://api.danmaku.meagames.cn/user_info/' + data.uid)).json();
-                                if (liverInfo.data) {
-                                    this.liverName = liverInfo.data.name;
-                                }
-
-                                if (this.roomLiving != 1) {
-                                    mosha.createToast({
-                                        title: '直播间未开播',
-                                        description: '当前直播间未开播，接收到的弹幕只是虚空聊天'
-                                    }, {
-                                        type: 'warning',
-                                        hideProgressBar: true
-                                    });
-                                } else {
-                                    mosha.createToast({
-                                        title: '已成功连接到直播',
-                                        description: `${roomInfo.data.title}<br/>开播时间：${new Date(this.livingStart).toLocaleString()}`
-                                    }, {
-                                        type: 'info',
-                                        hideProgressBar: true
-                                    });
-                                }
-                            }
-                        } catch (e) {
-                            console.log('fetch failed');
-                        }
-                        client.setHandler(msg => {
-                            if (msg.cmd == 'DANMU_MSG') {
-                                this.beforeDanmakuUpdate();
-
-                                let user = msg.info[2];
-                                let danmaku = {
-                                    id: this.danmakuList.length,
-                                    user: user[1],
-                                    uid: user[0],
-                                    timestamp: msg.info[0][4],
-                                    time: new Date(msg.info[0][4]).toLocaleString(),
-                                    type: msg.info[0][1],
-                                    content: msg.info[1],
-                                    original: '',
-                                    member: null
-                                };
-
-                                if (this.tryRecoveryFromBannedWords) {
-                                    let recovered = recovery(danmaku.content);
-                                    danmaku.content = refine(danmaku.content);
-                                    recovered = refine(recovered);
-                                    if (recovered !== danmaku.content) {
-                                        danmaku.original = danmaku.content;
-                                        danmaku.content = recovered;
-                                    }
-                                }
-
-                                for (let member of this.members) {
-                                    if (member.enabled && member.ruleMatcher) {
-                                        let result = member.ruleMatcher(danmaku);
-                                        if (result) {
-                                            danmaku.member = member;
-                                            if (result.groups && result.groups.content) {
-                                                danmaku.inner = result.groups.content;
-                                            }
-                                            if (member.action == 'highlight') {
-                                                if (this.currentMode === 0) {
-                                                    if (this.selectedDanmakuList.length > this.selectedDanmakuHistoryCount) {
-                                                        this.selectedDanmakuList.shift();
-                                                    }
-                                                    this.selectedDanmakuList.push(danmaku);
-                                                }
-                                                if (this.recordingDanmaku) {
-                                                    this.recordDanmakuList.push(danmaku);
-                                                }
-                                                if (Notification.permission === 'granted' && this.currentMode === 0) {
-                                                    // send desktop notification
-                                                    if (navigator.platform === 'Win32') {
-                                                        // try close and resend notification
-                                                        let key = danmaku.member.name + danmaku.member.order;
-                                                        if (this.counters[key] === undefined) {
-                                                            this.counters[key] = 0;
-                                                        }
-                                                        this.counters[key]++;
-                                                        if (this.counters[key] > 80) {
-                                                            let notification = new Notification(danmaku.member.name, {
-                                                                tag: danmaku.member.name,
-                                                                body: danmaku.content
-                                                            });
-                                                            notification.onshow = () => {
-                                                                notification.close();
-                                                            };
-                                                            this.counters[key] = 0;
-                                                        }
-                                                    }
-                                                    let notification = new Notification(danmaku.member.name, {
-                                                        tag: danmaku.member.name,
-                                                        body: danmaku.inner ? danmaku.inner : danmaku.content,
-                                                    });
-                                                }
-                                            } else if (this.currentMode === 1) {
-                                                danmaku.member = null;
-                                                continue;
-                                            } else if (this.deleteIgnoreDanmaku) {
-                                                return;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (this.currentMode === 0 || (this.currentMode === 1 && danmaku.member)) {
-                                    if (this.danmakuList.length > this.danmakuHistoryCount) {
-                                        this.danmakuList.shift();
-                                    }
-                                    this.danmakuList.push(danmaku);
-                                    this.afterDanmakuUpdate();
-                                }
-                            } else if (msg.cmd === 'LIVE') {
-                                this.livingStart = msg.live_time * 1000;
-                                this.roomLiving = 1;
-                                mosha.createToast({
-                                    title: '主播已开播',
-                                    description: `开播时间: ${new Date(this.livingStart).toLocaleDateString()}`
-                                }, {
-                                    type: 'info',
-                                    hideProgressBar: true
-                                });
-                            } else if (msg.cmd === 'PREPARING') {
-                                mosha.createToast({
-                                    title: '主播已下播'
-                                }, {
-                                    type: 'info',
-                                    hideProgressBar: true
-                                });
-                            }
-                        });
-                        client.start(roomId);
-                        this.clientRunning = true;
+                        await this.connect();
                     }
                 },
                 addMember(rule) {
@@ -3065,7 +2898,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 tryParseImportInput() {
                     try {
-                        let members = decodeRulesEnhanced(this.importData);
+                        let members = decodeRules(this.importData);
                         if (members) {
                             for (let member of members) {
                                 if (member.action === 'ignore') {
@@ -3132,11 +2965,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             this.roomId = +roomId;
                         }
                         if (changeRoomIdSucceed) {
-                            if (this.clientRunning) {
-                                client.stop();
-                                this.clientRunning = false;
-                            }
-                            await this.onEnsureClicked();
+                            await this.reconnect();
                             this.clearDanmakuList();
                         }
                     }
@@ -3187,7 +3016,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     }
 
                     if (!this.clientRunning && (+this.importConfig.switchToMode === 1)) {
-                        await this.onEnsureClicked();
+                        await this.connect();
                     }
 
                     this.switchMode(+this.importConfig.switchToMode);
@@ -3366,11 +3195,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 selectSearchResult(roomId) {
                     this.roomId = roomId;
                     this.closeSearchDialog();
-                    if (this.clientRunning) {
-                        this.clientRunning = false;
-                        client.stop();
-                    }
-                    this.onEnsureClicked();
+                    this.reconnect();
                 },
                 gotoLivingRoom() {
                     window.open('https://live.bilibili.com/' + this.roomId);
@@ -3432,35 +3257,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     return `${this.danmakuFontSize}pt`;
                 },
                 previewStyle() {
-                    let res = {
-                        fontFamily: this.selectedStyle.fontName,
-                        fontSize: `${this.selectedStyle.fontSize}px`,
-                        color: this.selectedStyle.primaryColor,
-                        textShadow: `0 0 ${this.selectedStyle.shadow}px ${this.selectedStyle.backColor}`,
-                        rotate: `${this.selectedStyle.angle}deg`,
-                        transformOrigin: 'center center',
-                        textAlign: 'center',
-                        letterSpacing: `${this.selectedStyle.spacing}px`
-                    };
-                    if (this.selectedStyle.bold) {
-                        res.fontWeight = 'bold';
-                    }
-                    if (this.selectedStyle.italic) {
-                        res.fontStyle = 'italic';
-                    }
-                    let decoration = '';
-                    if (this.selectedStyle.underline) {
-                        decoration += 'underline ';
-                    }
-                    if (this.selectedStyle.strikeOut) {
-                        decoration += 'line-through';
-                    }
-                    if (decoration) {
-                        res.textDecorationLine = decoration;
-                    }
-                    res['-webkit-text-stroke-width'] = `${this.selectedStyle.outline}px`;
-                    res['-webkit-text-stroke-color'] = this.selectedStyle.outlineColor;
-                    return res;
+                    return this.calcPreviewStyle(this.selectedStyle);
                 }
             },
             components: {
@@ -3668,25 +3465,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 parent: Object,
                 subIndex: Number,
                 that: Object
-            },
-            methods: {
-                onClicked(ev) {
-                    // if (ev.shiftKey) {
-                    //     this.that.deleteRule(this.parent, this.subIndex, ev);
-                    // }
-                }
             }
-        }
+        };
 
-        // app.component('match-content', {
-        //     mixins: [simpleRuleMixin],
-        //     template: `
-        //     <div class="simple-rule-box" @click="onClicked">
-        //         <button class="floating-delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">内容{{ rule.inverse ? '不': '' }}匹配</div>
-        //         <input class="rule-box-input" v-model="rule.rule">
-        //     </div>`
-        // });
 
         app.component('match-content', {
             mixins: [simpleRuleMixin],
@@ -3697,21 +3478,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
-
-        // app.component('fetch-content', {
-        //     mixins: [simpleRuleMixin],
-        //     template: `
-        //     <div class="simple-rule-box" @click="onClicked">
-        //         <div class="floating-area">
-        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-        //         </div>
-        //         <div class="labeled-item-label">前缀</div>
-        //         <input class="colored-input-input" v-model="rule.prefix" style="width: 0">
-        //         <div class="labeled-item-center">后缀</div>
-        //         <input class="rule-box-input" v-model="rule.suffix" style="width: 0">
-        //     </div>`
-        // });
 
         app.component('fetch-content', {
             mixins: [simpleRuleMixin],
@@ -3727,19 +3493,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             </div>`
         });
 
-        // app.component('match-uid', {
-        //     mixins: [simpleRuleMixin],
-        //     template: `
-        //     <div class="simple-rule-box" @click="onClicked">
-        //         <div class="floating-area">
-        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-        //         </div>
-        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">UID{{ rule.inverse ? '不': '' }}是</div>
-        //         <input class="rule-box-input" v-model="rule.rule" type="number">
-        //     </div>`
-        // });
-
         app.component('match-uid', {
             mixins: [simpleRuleMixin],
             template: `
@@ -3752,19 +3505,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             </div>`
         });
 
-        // app.component('match-user', {
-        //     mixins: [simpleRuleMixin],
-        //     template: `
-        //     <div class="simple-rule-box" @click="onClicked">
-        //         <div class="floating-area">
-        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-        //         </div>
-        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">昵称{{ rule.inverse ? '不': '' }}是</div>
-        //         <input class="rule-box-input" v-model="rule.rule">
-        //     </div>`
-        // });
-
         app.component('match-user', {
             mixins: [simpleRuleMixin],
             template: `
@@ -3776,26 +3516,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
-
-        // app.component('match-type', {
-        //     mixins: [simpleRuleMixin],
-        //     template: `
-        //     <div class="simple-rule-box" @click="onClicked">
-        //         <div class="floating-area">
-        //             <button class="fill-button" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
-        //             <button class="delete-button" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-        //         </div>
-        //         <div class="rule-box-label" @click="rule.inverse = !rule.inverse">弹幕{{ rule.inverse ? '不': '' }}是</div>
-        //         <select class="rule-box-input" v-model="rule.rule">
-        //             <option value="1">普通弹幕</option>
-        //             <option value="4">底端弹幕</option>
-        //             <option value="5">顶端弹幕</option>
-        //             <option value="6">逆向弹幕</option>
-        //             <option value="7">精准定位</option>
-        //             <option value="8">高级弹幕</option>
-        //         </select>
-        //     </div>`
-        // });
 
         app.component('match-type', {
             mixins: [simpleRuleMixin],
