@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, initial-scale=1.0">
-    <title>紫金葫芦（暂定）</title>
+    <title>紫金葫芦</title>
     <!-- <script src="https://cdn.staticfile.org/pako/2.0.4/pako.min.js"></script> -->
     <script src="./js/pako.min.js"></script>
     <script>
@@ -537,8 +537,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦<sup><sup><sup>暂定</sup></sup></sup>&nbsp;&nbsp;v5.2 "BELT" build
-                2&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
+            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.2 "BELT" build
+                3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
                     style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
             <button class="rect-button" @click="openDocument">使用帮助</button>
             <button class="rect-button" @click="openGlobalSettings">全局设置</button>
@@ -2400,7 +2400,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 disconnect() {
                     client.stop();
                     this.clientRunning = false;
-                    document.title = '紫金葫芦（暂定）';
+                    document.title = '紫金葫芦';
                 },
                 async connect() {
                     let roomId = +this.roomId;
