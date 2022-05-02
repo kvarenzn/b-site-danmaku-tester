@@ -537,16 +537,16 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.2 "BELT" build
-                3&nbsp;&nbsp;&nbsp;*推荐使用<a href="https://www.mozilla.org/zh-CN/firefox/browsers"
-                    style="color:Orange;text-decoration: none">Firefox</a>获得最佳浏览体验</div>
-            <button class="rect-button" @click="openDocument">使用帮助</button>
-            <button class="rect-button" @click="openGlobalSettings">全局设置</button>
-            <div class="input-with-button" style="margin-right: 10%;">
-                <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
-                    @keyup.enter.native="onEnsureClicked">
-                <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' : '连接')
-                    : '搜索' }}</button>
+            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.2 "BELT" build 3</div>
+            <i class="fa-solid fa-gear icon-button" @click="openGlobalSettings"></i>
+            <div class="items-at-right">
+                <div class="input-with-button">
+                    <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
+                        @keyup.enter.native="onEnsureClicked">
+                    <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' : '连接')
+                        : '搜索' }}</button>
+                </div>
+                <i class="fa-solid fa-circle-question icon-button" @click="openDocument"></i>
             </div>
         </header>
         <div class="main">
@@ -581,8 +581,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         <div class="selection-button-1">请在弹幕池中选择任意弹幕以提取信息</div>
                         <div class="selection-button-2">*点击此按钮放弃提取*</div>
                     </button>
-                    <!-- <button class="floating-open-button" @click="openFloatingWindow"
-                        v-if="!floatingWindowOpened && currentMode === 0">开启弹幕悬浮窗</button> -->
                     <div class="scroll-list" ref="danmakuScroll">
                         <div class="danmaku-list-inner">
                             <div v-for="danmaku in danmakuList" class="danmaku-box"
@@ -1407,9 +1405,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </div>
             </div>
         </dialog>
-        <floating-danmaku-window :selected-danmaku-list="selectedDanmakuList"
-            @close-button-clicked="closeFloatingWindow" v-show="floatingWindowOpened" ref="floatingWindow">
-        </floating-danmaku-window>
     </div>
     <style>
         body {
@@ -1564,6 +1559,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             min-height: 50px;
             justify-content: space-between;
             background-color: black;
+            align-items: center;
         }
 
         .header-title {
@@ -1580,6 +1576,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             flex-direction: row;
             margin-top: 10px;
             margin-bottom: 10px;
+            align-self: stretch;
         }
 
         .room-id-input {
@@ -1588,6 +1585,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             padding-left: 20px;
             border-radius: 10px 0 0 10px;
             border: rgba(255, 255, 255, 0.4) 1px solid;
+            min-width: 200px;
         }
 
         .rect-button {
@@ -1599,6 +1597,21 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             border-radius: 10px;
             margin-top: 10px;
             margin-bottom: 10px;
+        }
+
+        .icon-button {
+            color: white;
+            font-size: 25px;
+        }
+
+        .items-at-right {
+            display: flex;
+            flex-direction: row;
+            column-gap: 30px;
+            justify-content: space-around;
+            height: 100%;
+            align-items: center;
+            margin-right: 10%;
         }
 
         .rect-button:hover {
@@ -2007,46 +2020,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: transparent;
         }
 
-        .hr {
-            height: 2px;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .sub-scroll-list {
-            overflow-y: scroll;
-            overflow-y: overlay;
-            height: 0;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .floating-danmaku-window {
-            position: fixed;
-            border-radius: 10px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border: rgba(255, 255, 255, 0.4) 1px solid;
-            height: 50vh;
-            width: 33vw;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .floating-danmaku-window-inner {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .selected-danmaku-list {
-            overflow-y: scroll;
-            overflow-y: overlay;
-            height: 0;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
         select option {
             background-color: #222;
         }
@@ -2341,7 +2314,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     reportOriginal: '',
                     reportShouldBe: '',
                     // tabSwitch
-                    addRuleTab: 0
+                    addRuleTab: 0,
+                    // notification
+                    notificationUsable: true
                 };
             },
             methods: {
@@ -2501,30 +2476,37 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                             if (this.recordingDanmaku) {
                                                 this.recordDanmakuList.push(danmaku);
                                             }
-                                            if (Notification.permission === 'granted' && this.currentMode === 0) {
-                                                // send desktop notification
-                                                if (navigator.platform === 'Win32') {
-                                                    // try close and resend notification
-                                                    let key = danmaku.member.name + danmaku.member.order;
-                                                    if (this.counters[key] === undefined) {
-                                                        this.counters[key] = 0;
-                                                    }
-                                                    this.counters[key]++;
-                                                    if (this.counters[key] > 80) {
+                                            if (this.notificationUsable && this.currentMode === 0) {
+                                                try {
+                                                    if (Notification.permission === 'granted') {
+                                                        // send desktop notification
+                                                        if (navigator.platform === 'Win32') {
+                                                            // try close and resend notification
+                                                            let key = danmaku.member.name + danmaku.member.order;
+                                                            if (this.counters[key] === undefined) {
+                                                                this.counters[key] = 0;
+                                                            }
+                                                            this.counters[key]++;
+                                                            if (this.counters[key] > 80) {
+                                                                let notification = new Notification(danmaku.member.name, {
+                                                                    tag: danmaku.member.name,
+                                                                    body: danmaku.content
+                                                                });
+                                                                notification.onshow = () => {
+                                                                    notification.close();
+                                                                };
+                                                                this.counters[key] = 0;
+                                                            }
+                                                        }
                                                         let notification = new Notification(danmaku.member.name, {
                                                             tag: danmaku.member.name,
-                                                            body: danmaku.content
+                                                            body: danmaku.inner ? danmaku.inner : danmaku.content,
                                                         });
-                                                        notification.onshow = () => {
-                                                            notification.close();
-                                                        };
-                                                        this.counters[key] = 0;
                                                     }
+                                                } catch (e) {
+                                                    console.log(e);
+                                                    this.notificationUsable = false;
                                                 }
-                                                let notification = new Notification(danmaku.member.name, {
-                                                    tag: danmaku.member.name,
-                                                    body: danmaku.inner ? danmaku.inner : danmaku.content,
-                                                });
                                             }
                                         } else if (this.currentMode === 1) {
                                             danmaku.member = null;
@@ -3571,84 +3553,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <button class="grouping-select" @click="that.fillFromDanmaku(rule)" v-if="that.danmakuList.length && !that.fillingRule">选取</button>
                 <button class="grouping-disabled" v-else>选取</button>
                 <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
-            </div>`
-        });
-
-
-        app.component('floating-danmaku-window', {
-            props: {
-                selectedDanmakuList: Array
-            },
-            data() {
-                return {
-                    x: 0,
-                    y: 0,
-                    startX: 0,
-                    startY: 0,
-                    startLeft: 0,
-                    startTop: 0,
-                    isDragging: false,
-                    stayAtBottom: true
-                };
-            },
-            computed: {
-                windowStyle() {
-                    return {
-                        top: `${this.y}px`,
-                        left: `${this.x}px`
-                    };
-                }
-            },
-            emits: ['closeButtonClicked'],
-            methods: {
-                closeButtonClicked() {
-                    this.$emit('closeButtonClicked');
-                },
-                mouseDown(e) {
-                    e.preventDefault();
-                    this.startX = e.clientX;
-                    this.startY = e.clientY;
-                    this.startLeft = this.x;
-                    this.startTop = this.y;
-                    this.isDragging = true;
-                },
-                mouseUp() {
-                    this.isDragging = false;
-                },
-                mouseMove(e) {
-                    e.preventDefault();
-                    if (this.isDragging) {
-                        this.x = this.startLeft + e.clientX - this.startX;
-                        this.y = this.startTop + e.clientY - this.startY;
-                    }
-                }
-            },
-            watch: {
-                selectedDanmakuList: {
-                    handler() {
-                        this.$nextTick(() => {
-                            if (this.stayAtBottom) {
-                                this.$refs.danmakuScroll.scroll({
-                                    top: this.$refs.danmakuScroll.scrollHeight - this.$refs.danmakuScroll.offsetHeight,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        });
-                    },
-                    deep: true
-                }
-            },
-            template: `
-            <div class="floating-danmaku-window" :style="windowStyle" @mousedown="mouseDown" @mousemove="mouseMove" @mouseup="mouseUp">
-                <div class="floating-danmaku-window-inner">
-                    <button class="floating-delete-button" @click="closeButtonClicked">关闭</button>
-                    <div class="selected-danmaku-list" ref="danmakuScroll">
-                        <div class="danmaku-box" v-for="danmaku in selectedDanmakuList" :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}">
-                            <div class="danmaku-user">{{ danmaku.user }} ({{ danmaku.uid }})</div>
-                            <div class="danmaku-content" :style="danmaku.member ? {color: danmaku.member.style.fontColor} : {}">{{ danmaku.content }}</div>
-                        </div>
-                    </div>
-                </div>
             </div>`
         });
 
