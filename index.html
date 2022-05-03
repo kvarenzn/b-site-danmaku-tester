@@ -537,8 +537,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.3 "FLAG" build 1</div>
-            <i class="fa-solid fa-gear icon-button" @click="openGlobalSettings"></i>
+            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.3 "FLAG" build 2</div>
             <div class="items-at-right">
                 <div class="input-with-button">
                     <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
@@ -546,6 +545,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' : '连接')
                         : '搜索' }}</button>
                 </div>
+                <i class="fa-solid fa-gear icon-button" @click="openGlobalSettings"></i>
                 <i class="fa-solid fa-circle-question icon-button" @click="openDocument"></i>
             </div>
         </header>
