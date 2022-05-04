@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>紫金葫芦</title>
     <!-- <script src="https://cdn.staticfile.org/pako/2.0.4/pako.min.js"></script> -->
     <script src="./js/pako.min.js"></script>
@@ -537,20 +538,31 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.5 "KEY" build 1</div>
-            <div class="items-at-right">
-                <div class="input-with-button">
-                    <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
-                        @keyup.enter.native="onEnsureClicked">
-                    <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' : '连接')
-                        : '搜索' }}</button>
+            <template v-if="currentPage === 3">
+                <div class="header-title-with-back" @click="currentPage = 1">
+                    <i class="fa-solid fa-angle-left icon-button"></i>
+                    <div class="header-title-main">配置规则"{{ selectedMember ? selectedMember.name : '' }}"</div>
                 </div>
-                <i class="fa-solid fa-gear icon-button" @click="openGlobalSettings"></i>
-                <i class="fa-solid fa-circle-question icon-button" @click="openDocument"></i>
-            </div>
+            </template>
+            <template v-else>
+                <div class="header-title hide-ssm">
+                    <div class="header-title-main">紫金葫芦</div>
+                    <div class="header-title-sub">v5.5 "KEY" build 1</div>
+                </div>
+                <div class="items-at-right">
+                    <div class="input-with-button">
+                        <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
+                            @keyup.enter.native="onEnsureClicked">
+                        <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' :
+                            '连接')
+                            : '搜索' }}</button>
+                    </div>
+                    <i class="fa-solid fa-circle-question icon-button" @click="openDocument"></i>
+                </div>    
+            </template>
         </header>
         <div class="main">
-            <div class="danmaku-view">
+            <div class="danmaku-view" v-if="currentPage === 0">
                 <div class="floating-area-another auto-hidden" v-if="currentMode === 1">
                     <button class="round-button" @click="exportAss">
                         <i class="fa-solid fa-file-export"></i>
@@ -638,20 +650,21 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                     </div>
                     <div v-else class="notify-text">
-                        【第一步】
+                        欢迎使用在线弹幕测试器
+                        <br />
+                        紫金葫芦 v5.5 build 1
                         <br />
                         <br />
                         请输入或搜索直播房间号码后
                         <br />
                         点击连接直播间
-                        <br />
                     </div>
                 </template>
                 <button class="floating-round-button" @click="switchMode(1)" v-if="currentMode === 0">
                     <i class="fa-solid fa-expand"></i>
                 </button>
             </div>
-            <div class="members-view" v-if="currentMode === 0">
+            <div class="members-view" v-if="currentPage === 1">
                 <template v-if="members.length">
                     <draggable :list="members" :component-data="{
                             class: 'scroll-list swipe-delete-outer'
@@ -680,9 +693,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     </draggable>
                 </template>
                 <div v-else class="notify-text">
-                    【第二步】
-                    <br />
-                    <br />
                     弹幕匹配规则为空
                     <br />
                     请点击下方的(+)按钮添加规则
@@ -712,7 +722,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
-            <div class="settings-view" v-if="currentMode === 0">
+            <div class="settings-view" v-if="currentPage === 3">
                 <div class="settings-view-inner" v-if="selectedMember">
                     <div class="settings-category">
                         <div class="category-name">基础设置</div>
@@ -720,21 +730,20 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="grouping-items">
                                 <div class="grouping-label">规则</div>
                                 <input class="grouping-input" v-model="selectedMember.name">
-                                <div class="grouping-label tooltip">行为<div class="tooltip-content">匹配成功之后的行为</div>
-                                </div>
+                                <div class="grouping-label">行为</div>
                                 <select v-model="selectedMember.action" class="grouping-input">
                                     <option value="highlight">高亮匹配弹幕</option>
                                     <option value="ignore">屏蔽匹配弹幕</option>
                                 </select>
                             </div>
                             <div class="settings-category" v-if="selectedMember.action == 'highlight'">
-                                <div class="category-name">行为设置</div>
+                                <div class="category-name">颜色设置</div>
                                 <div class="category-content">
                                     <div class="grouping-items">
-                                        <div class="grouping-label">弹幕颜色</div>
+                                        <div class="grouping-label">弹幕</div>
                                         <input class="grouping-input" v-model="selectedMember.style.fontColor"
                                             type="color">
-                                        <div class="grouping-label">样式背景</div>
+                                        <div class="grouping-label">背景</div>
                                         <input class="grouping-input" v-model="selectedMember.style.backgroundColor"
                                             type="color">
                                     </div>
@@ -764,19 +773,71 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         </div>
                     </div>
                 </div>
-                <div class="notify-text" v-else>
-                    【第三步】
-                    <br />
-                    <br />
-                    未选择匹配规则
-                    <br />
-                    请选中规则后在这里设置细则
-                </div>
                 <button v-if="selectedMember" class="floating-round-button" @click="openAddRuleDialog">
                     <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
+            <div class="settings-view" v-if="currentPage === 2">
+                <div class="settings-view-inner">
+                    <div class="settings-category">
+                        <div class="category-name">弹幕历史记录设置</div>
+                        <div class="category-content">
+                            <div class="grouping-items">
+                                <div class="grouping-label">弹幕列表最多记录</div>
+                                <input class="grouping-input" v-model="danmakuHistoryCount" type="number">
+                                <div class="grouping-label">条弹幕</div>
+                            </div>
+                            <div class="grouping-items" v-if="currentMode === 0">
+                                <div class="grouping-label">悬浮窗内最多记录</div>
+                                <input class="grouping-input" v-model="selectedDanmakuHistoryCount" type="number">
+                                <div class="grouping-label">条弹幕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-category" v-if="currentMode === 0">
+                        <div class="category-name">杂项设置【点击按钮可切换】</div>
+                        <div class="category-content">
+                            <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
+                                <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕【开】' : '删除已屏蔽弹幕【关】' }}
+                                </div>
+                                <div class="big-button-description">
+                                    {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-category">
+                        <div class="category-name">{{ members.length ? '导入/导出向导' : '导入向导' }}</div>
+                        <div class="category-content">
+                            <div class="dialog-big-button" @click="exportSettings" v-if="members.length">
+                                <div class="big-button-label">导出</div>
+                                <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
+                            </div>
+                            <div class="dialog-big-button" @click="importSettings">
+                                <div class="big-button-label">导入</div>
+                                <div class="big-button-description">从“译者注”专用格式中导入规则，可通过向导选择规则</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        <footer v-if="currentMode === 0">
+            <div class="icon-button-1" @click="currentPage = 0"
+                :style="{color: ['white', 'aqua'][+(currentPage === 0)]}">
+                <i class="fa-solid fa-comment-dots"></i>
+                <div>弹幕</div>
+            </div>
+            <div class="icon-button-1" @click="currentPage = 1" :style="{color: ['white', 'aqua'][currentPage & 1]}">
+                <i class="fa-solid fa-list-check"></i>
+                <div>规则</div>
+            </div>
+            <div class="icon-button-1" @click="currentPage = 2"
+                :style="{color: ['white', 'aqua'][+(currentPage === 2)]}">
+                <i class="fa-solid fa-gear"></i>
+                <div>设置</div>
+            </div>
+        </footer>
         <dialog ref="addMemberDialog">
             <i class="fa-solid fa-xmark floating-x" @click="closeAddMemberDialog"></i>
             <div class="settings-category">
@@ -891,60 +952,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </template>
             </div>
         </dialog>
-        <dialog ref="globalSettingsDialog">
-            <div class="dialog-content">
-                <i class="fa-solid fa-xmark floating-x" @click="closeGlobalSettings"></i>
-                <div class="settings-category">
-                    <div class="category-name">弹幕历史记录设置</div>
-                    <div class="category-content">
-                        <div class="grouping-items">
-                            <div class="grouping-label">弹幕列表最多记录</div>
-                            <input class="grouping-input" v-model="danmakuHistoryCount" type="number">
-                            <div class="grouping-label">条弹幕</div>
-                        </div>
-                        <div class="grouping-items" v-if="currentMode === 0">
-                            <div class="grouping-label">悬浮窗内最多记录</div>
-                            <input class="grouping-input" v-model="selectedDanmakuHistoryCount" type="number">
-                            <div class="grouping-label">条弹幕</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-category" v-if="currentMode === 0">
-                    <div class="category-name">杂项设置【点击按钮可切换】</div>
-                    <div class="category-content">
-                        <div class="dialog-big-button" @click="deleteIgnoreDanmaku = !deleteIgnoreDanmaku">
-                            <div class="big-button-label">{{ deleteIgnoreDanmaku ? '删除已屏蔽弹幕【开】' : '删除已屏蔽弹幕【关】' }}</div>
-                            <div class="big-button-description">
-                                {{ deleteIgnoreDanmaku ? '新匹配屏蔽规则的弹幕将从弹幕列表中移除' : '所有匹配屏蔽规则的弹幕都将被打上删除线标记' }}
-                            </div>
-                        </div>
-                        <!-- <div class="dialog-big-button"
-                            @click="tryRecoveryFromBannedWords = !tryRecoveryFromBannedWords">
-                            <div class="big-button-label">{{ tryRecoveryFromBannedWords ? '还原包含莫名其妙敏感词的弹幕【开】' :
-                                '还原包含莫名其妙敏感词的弹幕【关】' }}
-                            </div>
-                            <div class="big-button-description">
-                                {{ tryRecoveryFromBannedWords ? '功能已开启，该模式下“Shui觉”将自动还原为“睡觉”' :
-                                '例如在某些直播间“睡觉”写成“Shui觉”才能发出的部分敏感词' }}
-                            </div>
-                        </div> -->
-                    </div>
-                </div>
-                <div class="settings-category">
-                    <div class="category-name">{{ members.length ? '导入/导出向导' : '导入向导' }}</div>
-                    <div class="category-content">
-                        <div class="dialog-big-button" @click="exportSettings" v-if="members.length">
-                            <div class="big-button-label">导出</div>
-                            <div class="big-button-description">将规则设置导出为“译者注”专用格式，便于分享或备份</div>
-                        </div>
-                        <div class="dialog-big-button" @click="importSettings">
-                            <div class="big-button-label">导入</div>
-                            <div class="big-button-description">从“译者注”专用格式中导入规则，可通过向导选择规则</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </dialog>
         <dialog ref="exportSettingsDialog">
             <div class="dialog-content">
                 <i class="fa-solid fa-xmark floating-x" @click="closeExportDialog" v-if="exportState === 0"></i>
@@ -952,53 +959,55 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <div class="settings-category">
                         <div class="category-name">导出向导</div>
                         <div class="category-content">
-                            <div class="category-content">
+                            <div class="settings-category">
                                 <div class="category-name">请选择过滤模式【点击下拉可切换】</div>
-                                <div class="grouping-items">
-                                    <div class="grouping-label">配置模式为</div>
-                                    <select v-model="exportConfig.mode" class="grouping-input">
-                                        <option value="0">标准模式</option>
-                                        <option value="1">沉浸模式</option>
-                                    </select>
+                                <div class="category-content">
+                                    <div class="grouping-items">
+                                        <div class="grouping-label">配置模式为</div>
+                                        <select v-model="exportConfig.mode" class="grouping-input">
+                                            <option value="0">标准模式</option>
+                                            <option value="1">沉浸模式</option>
+                                        </select>
+                                    </div>        
                                 </div>
-                                <div class="settings-category">
-                                    <div class="category-name">附加直播间信息【点击按钮可切换】</div>
-                                    <div class="category-content">
-                                        <div class="dialog-big-button"
-                                            @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
-                                            <div class="big-button-label">附加直播间信息 【{{ exportConfig.forSpecificRoom ? '开'
-                                                : '关' }}】</div>
-                                            <div class="big-button-description">{{ exportConfig.forSpecificRoom ?
-                                                '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
-                                        </div>
-                                        <div class="grouping-items" v-if="exportConfig.forSpecificRoom">
-                                            <div class="grouping-label">直播间号码或主播用户名</div>
-                                            <input class="grouping-input" v-model="exportConfig.specificRoomID">
-                                        </div>
+                            </div>
+                            <div class="settings-category">
+                                <div class="category-name">附加直播间信息【点击按钮可切换】</div>
+                                <div class="category-content">
+                                    <div class="dialog-big-button"
+                                        @click="exportConfig.forSpecificRoom = !exportConfig.forSpecificRoom">
+                                        <div class="big-button-label">附加直播间信息 【{{ exportConfig.forSpecificRoom ? '开'
+                                            : '关' }}】</div>
+                                        <div class="big-button-description">{{ exportConfig.forSpecificRoom ?
+                                            '导出的配置附带直播间号码，导入后可自动连接直播间弹幕' : '导出的配置不含直播间号码，导入后需手动查找直播间连接' }}</div>
+                                    </div>
+                                    <div class="grouping-items" v-if="exportConfig.forSpecificRoom">
+                                        <div class="grouping-label">直播间号码或主播用户名</div>
+                                        <input class="grouping-input" v-model="exportConfig.specificRoomID">
                                     </div>
                                 </div>
-                                <div class="settings-category">
-                                    <div class="category-name">请选择导出模式【点击按钮可切换】</div>
-                                    <div class="category-content">
-                                        <div class="dialog-big-button"
-                                            @click="exportConfig.selectAll = !exportConfig.selectAll">
-                                            <div class="big-button-label">{{ exportConfig.selectAll ? '模式：导出所有规则' :
-                                                '模式：导出选中的规则' }}</div>
-                                        </div>
-                                        <div class="settings-category" v-if="!exportConfig.selectAll">
-                                            <div class="category-name">请点选要导出的规则，被选中的规则会被高亮显示</div>
-                                            <div class="category-content" style="min-height: 300px;">
-                                                <div class="scroll-list">
-                                                    <div class="member-info-box" @click="exportToggleSelection(index)"
-                                                        :style="{background: exportConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
-                                                        v-for="(member, index) in members">
-                                                        <div class="member-name"
-                                                            :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">
-                                                            {{ member.name }}</div>
-                                                        <div class="member-rules"
-                                                            :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">
-                                                            匹配细则：{{ member.rulesDescription }}</div>
-                                                    </div>
+                            </div>
+                            <div class="settings-category">
+                                <div class="category-name">请选择导出模式【点击按钮可切换】</div>
+                                <div class="category-content">
+                                    <div class="dialog-big-button"
+                                        @click="exportConfig.selectAll = !exportConfig.selectAll">
+                                        <div class="big-button-label">{{ exportConfig.selectAll ? '模式：导出所有规则' :
+                                            '模式：导出选中的规则' }}</div>
+                                    </div>
+                                    <div class="settings-category" v-if="!exportConfig.selectAll">
+                                        <div class="category-name">请点选要导出的规则，被选中的规则会被高亮显示</div>
+                                        <div class="category-content" style="min-height: 300px;">
+                                            <div class="scroll-list">
+                                                <div class="member-info-box" @click="exportToggleSelection(index)"
+                                                    :style="{background: exportConfig.selection[index] ? 'rgba(255, 255, 255, 0.3)' : member.style.backgroundColor }"
+                                                    v-for="(member, index) in members">
+                                                    <div class="member-name"
+                                                        :style="{ color: member.style.fontColor, textDecorationLine: member.enabled ? 'none' : 'line-through' }">
+                                                        {{ member.name }}</div>
+                                                    <div class="member-rules"
+                                                        :style="{textDecorationLine: member.enabled ? 'none' : 'line-through'}">
+                                                        匹配细则：{{ member.rulesDescription }}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1014,7 +1023,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 <div class="big-button-label" @click="confirmExport('url')">导出为链接形式</div>
                             </div>
                         </div>
-
+                    </div>
                 </template>
                 <template v-else>
                     <div class="settings-category">
@@ -1427,6 +1436,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             border: hidden;
         }
 
+        input {
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+        }
+
         .copy-button {
             flex-grow: 1;
             flex-basis: 50%;
@@ -1459,6 +1474,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             border-radius: 10px;
             background-color: #333;
             border: rgba(255, 255, 255, 0.4) 1px solid;
+        }
+
+        button {
+            margin: 0;
+            border-width: 0;
         }
 
         .dialog-content {
@@ -1501,13 +1521,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         .big-button-label {
             color: white;
-            font-size: large;
             font-weight: bold;
+            font-size: small;
         }
 
         .big-button-description {
             color: lightgray;
-            font-size: small;
+            font-size: x-small;
         }
 
         .sortable-ghost {
@@ -1524,11 +1544,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         .rule-box {
             display: flex;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 5px;
+            border-radius: 5px;
             border: rgba(255, 255, 255, 0.2) 1px solid;
             flex-direction: column;
-            margin: 5px;
             position: relative;
         }
 
@@ -1545,34 +1564,55 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         .rule-box-item {
             display: flex;
             flex-direction: column;
-            margin: 10px;
+            margin: 5px;
         }
 
         span {
             color: white;
+            font-size: small;
         }
 
         header {
             display: flex;
             flex-direction: row;
             height: 50px;
-            justify-content: space-between;
             background-color: black;
             align-items: center;
+            justify-content: space-between;
         }
 
         .header-title {
             display: flex;
             align-items: center;
-            margin-left: 10%;
+            column-gap: 15px;
+        }
+
+        .header-title-main {
+            display: flex;
+            align-items: center;
             color: white;
-            font-size: larger;
-            text-decoration: none
+        }
+
+        .header-title-sub {
+            display: none;
+        }
+
+        .header-title-with-back {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+        }
+
+        .header-title-with-back>i {
+            margin-left: 20px;
+            margin-right: 30px;
         }
 
         .input-with-button {
             display: flex;
             flex-direction: row;
+            justify-content: center;
+            border-radius: 10px;
             margin-top: 10px;
             margin-bottom: 10px;
             align-self: stretch;
@@ -1585,17 +1625,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             border-radius: 10px 0 0 10px;
             border: rgba(255, 255, 255, 0.4) 1px solid;
             min-width: 200px;
-        }
-
-        .rect-button {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.4);
-            border: hidden;
-            padding-left: 20px;
-            padding-right: 20px;
-            border-radius: 10px;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            height: auto;
         }
 
         .icon-button {
@@ -1606,19 +1636,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         .items-at-right {
             display: flex;
             flex-direction: row;
-            column-gap: 30px;
-            justify-content: space-around;
             height: 100%;
             align-items: center;
-            margin-right: 10%;
-        }
-
-        .rect-button:hover {
-            background-color: rgba(255, 255, 255, 0.6);
-        }
-
-        .rect-button:active {
-            background-color: rgba(255, 255, 255, 0.4);
+            justify-content: space-around;
+            column-gap: 10px;
+            margin-left: auto;
+            margin-right: auto;
+            flex-grow: 1;
         }
 
         .ensure-button {
@@ -1636,6 +1660,57 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         .ensure-button:active {
             background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media screen and (max-width: 415px) {
+            .hide-ssm {
+                display: none;
+            }
+
+            header {
+                justify-content: center;
+            }
+        }
+
+        @media screen and (max-width: 490px) {
+            .hide-sm {
+                display: none;
+            }
+        }
+
+        @media screen and (min-width: 460px) {
+            .items-at-right {
+                column-gap: 30px;
+            }
+        }
+
+        @media screen and (min-width: 415px) {
+            .header-title {
+                margin-left: 10px;
+            }
+
+            .items-at-right {
+                margin-left: 0;
+                margin-right: 10px;
+            }
+        }
+
+        @media screen and (min-width: 586px) {
+            .header-title {
+                margin-left: 10%;
+            }
+
+            .items-at-right {
+                margin-right: 10%;
+            }
+        }
+
+        @media screen and (min-width: 812px) {
+            .header-title-sub {
+                display: flex;
+                align-items: center;
+                color: gray;
+            }
         }
 
         .main {
@@ -1878,6 +1953,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             color: white;
             font-size: 30px;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .round-button>i {
+            text-align: center;
         }
 
         .round-button:hover {
@@ -1899,6 +1981,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             width: 60px;
             color: white;
             font-size: 30px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .floating-round-button>i {
             text-align: center;
         }
 
@@ -1934,7 +2023,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             top: 7px;
             background-color: transparent;
             color: lightgray;
-            font-size: 24px;
+            font-size: 15px;
             z-index: 114514;
         }
 
@@ -2045,7 +2134,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         /* Auto hidden */
         .auto-hidden {
-            opacity: 0;
+            opacity: 0.2;
         }
 
         .auto-hidden:hover {
@@ -2148,7 +2237,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             display: flex;
             flex-direction: row;
             justify-content: center;
-            border-radius: 10px;
+            border-radius: 5px;
+            font-size: small;
+        }
+
+        .rule-box-item .grouping-items {
+            font-size: x-small;
         }
 
         .hover-bright:hover {
@@ -2156,20 +2250,21 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         }
 
         .grouping-items>:nth-child(1) {
-            border-top-left-radius: 10px;
-            border-bottom-left-radius: 10px;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
         }
 
         .grouping-items>:nth-last-child(1) {
-            border-top-right-radius: 10px;
-            border-bottom-right-radius: 10px;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
         }
 
         .grouping-label {
             background-color: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
+            padding: 5px 10px;
             color: white;
             flex-shrink: 0;
+            font-size: inherit;
         }
 
         .grouping-input {
@@ -2181,16 +2276,18 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             width: 0;
             height: auto;
             flex-shrink: 1;
+            font-size: inherit;
         }
 
         .grouping-delete {
             background-color: transparent;
-            padding: 10px 20px;
+            padding: 5px 10px;
             color: red;
             font-weight: bold;
             flex-shrink: 0;
             /* border: solid 1px rgba(255, 255, 255, 0.2); */
             border: solid 1px red;
+            font-size: inherit;
         }
 
         .grouping-delete:hover {
@@ -2203,11 +2300,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         .grouping-select {
             background-color: transparent;
-            padding: 10px 20px;
+            padding: 5px 10px;
             color: cyan;
             font-weight: bold;
             flex-shrink: 0;
             border: solid 1px cyan;
+            font-size: inherit;
         }
 
         .grouping-select:hover {
@@ -2220,12 +2318,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         .grouping-disabled {
             background-color: transparent;
-            padding: 10px 20px;
+            padding: 5px 10px;
             color: lightgray;
             font-weight: bold;
             flex-shrink: 0;
             /* border: solid 1px rgba(255, 255, 255, 0.2); */
             border: solid 1px lightgray;
+            font-size: inherit;
         }
 
         .grouping-tab-button {
@@ -2233,6 +2332,35 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             color: white;
             flex-shrink: 0;
             border: rgba(255, 255, 255, 0.2) 1px solid;
+        }
+
+        footer {
+            display: flex;
+            flex-direction: row;
+            height: 50px;
+            background-color: black;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .icon-button-1 {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        .icon-button-1>i {
+            color: inherit;
+            font-size: x-large;
+        }
+
+        .icon-button-1>div {
+            color: inherit;
+            font-size: smaller;
         }
     </style>
     <script>
@@ -2316,7 +2444,9 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     // tabSwitch
                     addRuleTab: 0,
                     // notification
-                    notificationUsable: true
+                    notificationUsable: true,
+                    // stacked view
+                    currentPage: 0
                 };
             },
             methods: {
@@ -2614,6 +2744,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 selectMember(index) {
                     this.selectedIndex = index;
                     this.selectedMember = this.members[index];
+                    this.currentPage = 3;
                 },
                 addRule(type) {
                     let ruleId = this.currentRuleId;
@@ -2829,15 +2960,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                         this.currentMode = 0;
                     }
                 },
-                openGlobalSettings() {
-                    this.checkSwitchMode();
-                    this.$refs.globalSettingsDialog.showModal();
-                },
-                closeGlobalSettings() {
-                    this.$refs.globalSettingsDialog.close();
-                },
                 exportSettings() {
-                    this.$refs.globalSettingsDialog.close();
                     this.exportState = 0;
                     this.exportConfig.mode = this.currentMode;
                     if (this.liverName) {
@@ -2876,7 +2999,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     this.$refs.exportSettingsDialog.close();
                 },
                 importSettings() {
-                    this.$refs.globalSettingsDialog.close();
                     this.importState = 0;
                     this.$refs.importSettingsDialog.showModal();
                 },
