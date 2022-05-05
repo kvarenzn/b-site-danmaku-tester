@@ -567,12 +567,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <button class="round-button" @click="exportAss">
                         <i class="fa-solid fa-file-export"></i>
                     </button>
-                    <button class="round-button" @click="enlargeFontSize">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                    <button class="round-button" @click="reduceFontSize">
-                        <i class="fa-solid fa-minus"></i>
-                    </button>
+                    <vertical-slider v-model="danmakuFontSize" :max-value="50" :min-value="10"></vertical-slider>
                     <button class="round-button" @click="switchMode(0)">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </button>
@@ -1879,9 +1874,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             right: 10px;
             bottom: 10px;
             display: flex;
-            flex-direction: row;
-            column-gap: 10px;
+            flex-direction: column;
+            row-gap: 10px;
             z-index: 114514;
+            align-items: center;
         }
 
         .delete-button {
@@ -1948,10 +1944,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             background-color: gray;
             border: hidden;
             border-radius: 50%;
-            height: 60px;
-            width: 60px;
+            height: 40px;
+            width: 40px;
             color: white;
-            font-size: 30px;
+            font-size: 18px;
             text-align: center;
             display: flex;
             align-items: center;
@@ -2361,6 +2357,54 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         .icon-button-1>div {
             color: inherit;
             font-size: smaller;
+        }
+
+        /* slider */
+        :root {
+            --handle-size: 20px;
+        }
+
+        .slider {
+            position: relative;
+            width: 20px;
+            height: 120px;
+        }
+
+        .slider-rail {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background-color: gray;
+        }
+
+        .slider-fill {
+            position: absolute;
+            top: unset;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: lightgray;
+            border-radius: 10px;
+        }
+
+        .slider-handles {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(var(--handle-size) / 2);
+            bottom: calc(var(--handle-size) / 2);
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: unset;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            width: var(--handle-size);
+            height: var(--handle-size);
+            border-radius: 50%;
+            background-color: #222;
         }
     </style>
     <script>
@@ -3677,6 +3721,82 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 <button class="grouping-delete" @click="that.deleteRule(parent, subIndex, $event)">删除</button>
             </div>`
         });
+
+        app.component('vertical-slider', {
+            template: `
+            <div class="slider" @mousedown="beforeSlideStart" @touchstart="beforeSlideStart">
+                <div class="slider-rail">
+                    <div class="slider-fill" :style="{ height: cssPercent }"></div>
+                    <div class="slider-handles" ref="sliderHandlers">
+                        <div class="slider-handle" :style="{ bottom: cssPercent }"></div>
+                    </div>
+                </div>
+            </div>
+            `,
+            props: {
+                maxValue: Number,
+                minValue: Number,
+                modelValue: Number
+            },
+            emits: ['update:modelValue'],
+            data() {
+                return {
+                    rate: (this.modelValue - this.minValue) / (this.maxValue - this.minValue),
+                    dragging: false
+                };
+            },
+            methods: {
+                isTouchEvent(event) {
+                    return window.TouchEvent && event instanceof window.TouchEvent;
+                },
+                getPointValue(event) {
+                    const touchEvent = this.isTouchEvent(event) ? event.touches[0] : event;
+                    const railRect = this.$refs.sliderHandlers.getBoundingClientRect();
+                    const rate = (railRect.bottom - touchEvent.clientY) / railRect.height;
+                    if (rate < 0) {
+                        return 0;
+                    }
+                    if (rate > 1) {
+                        return 1;
+                    }
+                    return rate;
+                },
+                beforeSlideStart(event) {
+                    this.rate = this.getPointValue(event);
+                    this.onSlideStart();
+                },
+                onSlideStart() {
+                    this.dragging = true;
+                    document.addEventListener('mousemove', this.onMouseMove);
+                    document.addEventListener('touchmove', this.onMouseMove);
+                    document.addEventListener('mouseup', this.onMouseUp);
+                    document.addEventListener('touchend', this.onMouseUp);
+                },
+                onSlideStop() {
+                    this.dragging = true;
+                    document.removeEventListener('mousemove', this.onMouseMove);
+                    document.removeEventListener('touchmove', this.onMouseMove);
+                    document.removeEventListener('mouseup', this.onMouseUp);
+                    document.removeEventListener('touchend', this.onMouseUp);
+                },
+                onMouseUp() {
+                    this.onSlideStop();
+                },
+                onMouseMove() {
+                    this.rate = this.getPointValue(event);
+                }
+            },
+            computed: {
+                cssPercent() {
+                    return this.rate * 100 + '%';
+                }
+            },
+            watch: {
+                rate(value) {
+                    this.$emit('update:modelValue', value * (this.maxValue - this.minValue) + this.minValue);
+                }
+            }
+        })
 
         app.mount('#app');
 
