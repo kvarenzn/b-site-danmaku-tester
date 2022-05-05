@@ -1946,8 +1946,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             border-radius: 50%;
             height: 40px;
             width: 40px;
-            color: white;
-            font-size: 18px;
             text-align: center;
             display: flex;
             align-items: center;
@@ -1955,6 +1953,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         }
 
         .round-button>i {
+            font-size: 18px;
+            color: white;
             text-align: center;
         }
 
@@ -2361,12 +2361,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
 
         /* slider */
         :root {
-            --handle-size: 20px;
+            --handle-size: 40px;
         }
 
         .slider {
             position: relative;
-            width: 20px;
+            width: var(--handle-size);
             height: 120px;
         }
 
@@ -2374,8 +2374,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             position: relative;
             width: 100%;
             height: 100%;
-            border-radius: 10px;
-            background-color: gray;
+            border-radius: calc(var(--handle-size) / 2);
+            background-color: #111;
         }
 
         .slider-fill {
@@ -2385,7 +2385,16 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             right: 0;
             bottom: 0;
             background-color: lightgray;
-            border-radius: 10px;
+            border-radius: calc(var(--handle-size) / 2);
+        }
+
+        .slider-fill-rect {
+            position: absolute;
+            top: unset;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: lightgray;
         }
 
         .slider-handles {
@@ -2404,8 +2413,20 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             width: var(--handle-size);
             height: var(--handle-size);
             border-radius: 50%;
-            background-color: #222;
+            background-color: gray;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
         }
+
+        .slider-handle>i {
+            font-size: 18px;
+            color: white;
+            text-align: center;
+        }
+
     </style>
     <script>
         const draggable = vuedraggable;
@@ -3726,9 +3747,12 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             template: `
             <div class="slider" @mousedown="beforeSlideStart" @touchstart="beforeSlideStart">
                 <div class="slider-rail">
-                    <div class="slider-fill" :style="{ height: cssPercent }"></div>
+                    <div class="slider-fill" style="height: var(--handle-size)"></div>
                     <div class="slider-handles" ref="sliderHandlers">
-                        <div class="slider-handle" :style="{ bottom: cssPercent }"></div>
+                        <div class="slider-fill-rect" :style="{ height: cssPercent }"></div>
+                        <div class="slider-handle" :style="{ bottom: cssPercent }">
+                            <i class="fa-solid fa-text-height"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3762,6 +3786,8 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     return rate;
                 },
                 beforeSlideStart(event) {
+                    event.preventDefault();
+                    event.cancelBubble = true;
                     this.rate = this.getPointValue(event);
                     this.onSlideStart();
                 },
@@ -3780,9 +3806,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     document.removeEventListener('touchend', this.onMouseUp);
                 },
                 onMouseUp() {
+                    event.preventDefault();
+                    event.cancelBubble = true;
                     this.onSlideStop();
                 },
                 onMouseMove() {
+                    event.preventDefault();
+                    event.cancelBubble = true;
                     this.rate = this.getPointValue(event);
                 }
             },
