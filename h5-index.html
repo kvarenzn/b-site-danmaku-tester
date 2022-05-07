@@ -584,7 +584,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             清空弹幕列表
                         </button>
                     </div>
-                    <button class="selection-cancel-button" v-if="fillingRule" @click="fillingRule = null">
+                    <button class="selection-cancel-button" v-if="fillingRule" @click="cancelFilling">
                         <div class="selection-button-1">请在弹幕池中选择任意弹幕以提取信息</div>
                         <div class="selection-button-2">*点击此按钮放弃提取*</div>
                     </button>
@@ -3200,22 +3200,15 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 openDocument() {
                     window.open('https://b23.tv/XcAnm9u');
                 },
-                enlargeFontSize() {
-                    this.danmakuFontSize++;
-                },
-                reduceFontSize() {
-                    this.danmakuFontSize--;
-                    if (this.danmakuFontSize < 4) {
-                        this.danmakuFontSize = 4;
-                    }
-                },
                 fillFromDanmaku(rule) {
                     this.fillingRule = rule;
+                    this.currentPage = 0;
                 },
                 selectDanmaku(danmaku) {
                     if (!this.fillingRule) {
                         return;
                     }
+                    this.currentPage = 3;
                     switch (this.fillingRule.type) {
                         case 'uid':
                             this.fillingRule.rule = danmaku.uid;
@@ -3233,6 +3226,10 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             break;
                     }
                     this.fillingRule = null;
+                },
+                cancelFilling() {
+                    this.fillingRule = null;
+                    this.currentPage = 3;
                 },
                 closeBigbangDialog() {
                     this.fillingRule = null;
