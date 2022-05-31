@@ -389,6 +389,227 @@
         };
     </script>
     <script>
+        const patienceDiff = (a, b, plus) => {
+            let result = [];
+            let deleted = 0;
+            let inserted = 0;
+
+            let aMove = [];
+            let aMoveIndex = [];
+            let bMove = [];
+            let bMoveIndex = [];
+
+            const findUnique = (arr, from, to) => {
+                let lines = new Map();
+
+                for (let i = from; i <= to; i++) {
+                    let line = arr[i];
+                    if (lines.has(line)) {
+                        let record = lines.get(line);
+                        record.count++;
+                        record.index = i;
+                    } else {
+                        lines.set(line, { count: 1, index: i });
+                    }
+                }
+
+                lines.forEach((value, key, map) => {
+                    if (value.count !== 1) {
+                        map.delete(key);
+                    } else {
+                        map.set(key, value.index);
+                    }
+                });
+
+                return lines;
+            };
+
+            const uniqueCommon = (aFrom, aTo, bFrom, bTo) => {
+                let mapA = findUnique(a, aFrom, aTo);
+                let mapB = findUnique(b, bFrom, bTo);
+
+                mapA.forEach((value, key, map) => {
+                    if (mapB.has(key)) {
+                        map.set(key, { indexA: value, indexB: mapB.get(key) })
+                    } else {
+                        map.delete(key);
+                    }
+                });
+
+                return mapA;
+            };
+
+            const longestCommonSubsequence = commonMap => {
+                let jaggedArray = [];
+
+                commonMap.forEach((value, key, map) => {
+                    let i = 0;
+                    while (jaggedArray[i] && jaggedArray[i][jaggedArray[i].length - 1].indexB < value.indexB) {
+                        i++;
+                    }
+                    if (!jaggedArray[i]) {
+                        jaggedArray[i] = [];
+                    }
+
+                    if (i > 0) {
+                        value.prev = jaggedArray[i - 1][jaggedArray[i - 1].length - 1];
+                    }
+
+                    jaggedArray[i].push(value);
+                });
+
+                let lcs = [];
+
+                if (jaggedArray.length > 0) {
+                    let n = jaggedArray.length - 1;
+                    lcs = [jaggedArray[n][jaggedArray[n].length - 1]];
+                    while (lcs[lcs.length - 1].prev) {
+                        lcs.push(lcs[lcs.length - 1].prev);
+                    }
+                }
+
+                return lcs.reverse();
+            };
+
+            const addToResult = (indexA, indexB) => {
+                if (indexB < 0) {
+                    aMove.push(a[indexA]);
+                    aMoveIndex.push(result.length);
+                    deleted++;
+                } else if (indexA < 0) {
+                    bMove.push(b[indexB]);
+                    bMoveIndex.push(result.length);
+                    inserted++;
+                }
+
+                result.push({
+                    line: indexA >= 0 ? a[indexA] : b[indexB],
+                    indexA,
+                    indexB
+                });
+            };
+
+
+            const addSubMatch = (aFrom, aTo, bFrom, bTo) => {
+                while (aFrom <= aTo && bFrom <= bTo && a[aFrom] === b[bFrom]) {
+                    addToResult(aFrom++, bFrom++);
+                }
+
+                let aToTmp = aTo;
+                while (aFrom <= aTo && bFrom <= bTo && a[aTo] === b[bTo]) {
+                    aTo--;
+                    bTo--;
+                }
+
+                let uniqueCommonMap = uniqueCommon(aFrom, aTo, bFrom, bTo);
+                if (uniqueCommonMap.size === 0) {
+                    while (aFrom <= aTo) {
+                        addToResult(aFrom++, -1);
+                    }
+                    while (bFrom <= bTo) {
+                        addToResult(-1, bFrom++);
+                    }
+                } else {
+                    recurseLCS(aFrom, aTo, bFrom, bTo, uniqueCommonMap);
+                }
+
+                while (aTo < aToTmp) {
+                    addToResult(++aTo, ++bTo);
+                }
+            };
+
+            const recurseLCS = (aFrom, aTo, bFrom, bTo, uniqueCommonMap) => {
+                uniqueCommonMap = uniqueCommonMap || uniqueCommon(a, aFrom, aTo, b, bFrom, bTo);
+                let x = longestCommonSubsequence(uniqueCommonMap);
+                if (x.length === 0) {
+                    addSubMatch(aFrom, aTo, bFrom, bTo);
+                } else {
+                    if (aFrom < x[0].indexA || bFrom < x[0].indexB) {
+                        addSubMatch(aFrom, x[0].indexA - 1, bFrom, x[0].indexB - 1);
+                    }
+
+                    let i;
+                    for (i = 0; i < x.length - 1; i++) {
+                        addSubMatch(x[i].indexA, x[i + 1].indexA - 1, x[i].indexB, x[i + 1].indexB - 1);
+                    }
+
+                    if (x[i].indexA <= aTo || x[i].indexB <= bTo) {
+                        addSubMatch(x[i].indexA, aTo, x[i].indexB, bTo);
+                    }
+                }
+            };
+
+            recurseLCS(0, a.length - 1, 0, b.length - 1);
+
+            if (plus) {
+                return {
+                    lines: result,
+                    linesDeleted: deleted,
+                    linesInserted: inserted,
+                    linesMoved: 0,
+                    aMove,
+                    aMoveIndex,
+                    bMove,
+                    bMoveIndex
+                };
+            }
+
+            return {
+                lines: result,
+                linesDeleted: deleted,
+                linesInserted: inserted,
+                linesMoved: 0
+            };
+        };
+
+        const patienceDiffPlus = (a, b) => {
+            let difference = patienceDiff(a, b, true);
+
+            let aMoveNext = difference.aMove;
+            let aMoveIndexNext = difference.aMoveIndex;
+            let bMoveNext = difference.bMove;
+            let bMoveIndexNext = difference.bMoveIndex;
+
+            let lastLinesMoved;
+
+            do {
+                let aMove = aMoveNext;
+                let aMoveIndex = aMoveIndexNext;
+                let bMove = bMoveNext;
+                let bMoveIndex = bMoveIndexNext;
+
+                aMoveNext = [];
+                aMoveIndexNext = [];
+                bMoveNext = [];
+                bMoveIndexNext = [];
+
+                let subDiff = patienceDiff(aMove, bMove);
+
+                lastLinesMoved = difference.linesMoved;
+
+                subDiff.lines.forEach((v, i) => {
+                    if (v.indexA >= 0 && v.indexB >= 0) {
+                        difference.lines[aMoveIndex[v.indexA]].moved = true;
+                        difference.lines[bMoveIndex[v.indexB]].indexA = aMoveIndex[v.indexA];
+                        difference.lines[bMoveIndex[v.indexB]].moved = true;
+
+                        difference.linesInserted--;
+                        difference.linesDeleted--;
+                        difference.linesMoved++;
+                    } else if (v.indexB < 0) {
+                        aMoveNext.push(aMove[v.indexA]);
+                        aMoveIndexNext.push(aMoveIndex[v.indexA]);
+                    } else {
+                        bMoveNext.push(bMove[v.indexB]);
+                        bMoveIndexNext.push(bMoveIndex[v.indexB]);
+                    }
+                });
+            } while (difference.linesMoved - lastLinesMoved);
+
+            return difference;
+        };
+    </script>
+    <script>
         const generateASSHeader = title => `[Script Info]
 ; 本字幕使用“在线弹幕测试器”生成
 ; https://danmaku.meagames.cn/
@@ -553,12 +774,13 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <div class="input-with-button">
                         <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
                             @keyup.enter.native="onEnsureClicked">
-                        <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开' :
+                        <button class="ensure-button" @click="onEnsureClicked">{{ roomIdIsNumber ? (clientRunning ? '断开'
+                            :
                             '连接')
                             : '搜索' }}</button>
                     </div>
                     <i class="fa-solid fa-circle-question icon-button" @click="openDocument"></i>
-                </div>    
+                </div>
             </template>
         </header>
         <div class="main">
@@ -963,7 +1185,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                             <option value="0">标准模式</option>
                                             <option value="1">沉浸模式</option>
                                         </select>
-                                    </div>        
+                                    </div>
                                 </div>
                             </div>
                             <div class="settings-category">
@@ -2426,7 +2648,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             color: white;
             text-align: center;
         }
-
     </style>
     <script>
         const draggable = vuedraggable;
