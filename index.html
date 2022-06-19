@@ -537,7 +537,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script src="./js/mosha-vue-toastify.umd.js"></script>
     <div id="app">
         <header v-if="currentMode === 0">
-            <div class="header-title">紫金葫芦&nbsp;&nbsp;v5.5 "KEY" build 3</div>
+            <div class="header-title">紫金葫芦&nbsp;&nbsp;v6.19 "BEE" build 1</div>
             <div class="items-at-right">
                 <div class="input-with-button">
                     <input v-model="roomId" placeholder="请输入直播间号码或主播用户名" class="room-id-input"
@@ -3087,6 +3087,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 closeAssExportDialog() {
                     this.$refs.exportSubtitleDialog.close();
+                    this.exportMembersList = [];
                 },
                 confirmAssExport() {
                     let result = generateASSHeader(this.subtitleTitle);
