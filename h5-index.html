@@ -768,7 +768,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <template v-else>
                 <div class="header-title hide-ssm">
                     <div class="header-title-main">紫金葫芦</div>
-                    <div class="header-title-sub">v7.9 "DOT" build 2</div>
+                    <div class="header-title-sub">v7.9 "DOT" build 3</div>
                 </div>
                 <div class="items-at-right">
                     <div class="input-with-button">
@@ -869,7 +869,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <div v-else class="notify-text">
                         欢迎使用在线弹幕测试器
                         <br />
-                        紫金葫芦 v7.9 build 1
+                        紫金葫芦 v7.9 build 3
                         <br />
                         <br />
                         请输入或搜索直播房间号码后
@@ -1119,25 +1119,25 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="dialog-big-button" @click="addRule('content')">
                                 <div class="big-button-label">匹配弹幕内容</div>
                                 <div class="big-button-description">
-                                    使用正则表达式匹配弹幕内容&nbsp;&nbsp;点击：内容匹配/内容不匹配字样可切换模式</br>例：设置内容匹配：“我很可爱”
+                                    使用正则表达式匹配弹幕内容&nbsp;&nbsp;点击：内容匹配/内容不匹配字样可切换模式<br/>例：设置内容匹配：“我很可爱”
                                     如弹幕中带有“我很可爱”均会视作匹配 </div>
                             </div>
                             <div class="dialog-big-button" @click="addRule('uid')">
                                 <div class="big-button-label">匹配弹幕发送者UID</div>
                                 <div class="big-button-description">
-                                    只有发送者UID与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：UID是/UID不是字样可切换模式</br>例：设置UID是：“12345”
+                                    只有发送者UID与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：UID是/UID不是字样可切换模式<br/>例：设置UID是：“12345”
                                     则UID为“12345”的用户发送的任意弹幕均会视作匹配 </div>
                             </div>
                             <div class="dialog-big-button" @click="addRule('user')">
                                 <div class="big-button-label">匹配弹幕发送者昵称</div>
                                 <div class="big-button-description">
-                                    只有发送者用户名与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：用户名是/用户名不是字样可切换模式</br>例：设置用户名是：“小明”
+                                    只有发送者用户名与设置的内容完全相同时才会匹配&nbsp;&nbsp;点击：用户名是/用户名不是字样可切换模式<br/>例：设置用户名是：“小明”
                                     则用户名为“小明”的用户发送的任意弹幕均会视作匹配 </div>
                             </div>
                             <div class="dialog-big-button" @click="addRule('type')">
                                 <div class="big-button-label">匹配弹幕种类</div>
                                 <div class="big-button-description">
-                                    只有弹幕种类与细则设置完全相同时才会匹配&nbsp;&nbsp;点击：弹幕是/弹幕不是字样可切换模式</br>例：设置弹幕种类是：“普通弹幕”则检测到任意“普通弹幕”均会视作匹配
+                                    只有弹幕种类与细则设置完全相同时才会匹配&nbsp;&nbsp;点击：弹幕是/弹幕不是字样可切换模式<br/>例：设置弹幕种类是：“普通弹幕”则检测到任意“普通弹幕”均会视作匹配
                                 </div>
                             </div>
                         </div>
@@ -1161,7 +1161,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div class="dialog-big-button" @click="addRule('fetch')">
                                 <div class="big-button-label">匹配前后缀标记提取弹幕内容</div>
                                 <div class="big-button-description">
-                                    通过手动标记同传前后缀记号可提取同传弹幕中的内容</br>例：提取前【咩：请给我钱】提取后
+                                    通过手动标记同传前后缀记号可提取同传弹幕中的内容<br/>例：提取前【咩：请给我钱】提取后
                                     &nbsp;请给我钱&nbsp; </div>
                             </div>
                         </div>
@@ -1522,7 +1522,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <div class="dialog-content" v-if="selectedDanmaku">
                 <div class="settings-category">
                     <div class="category-name">请在下方点击文字选中译文的前缀、后缀标识，被标记的标识在规则启用后会被工具过滤
-                        </br>请使用红色标记前缀，青色标记后缀，连续点击按可切换标识类型&nbsp;&nbsp;*例如&nbsp;&nbsp;<b><a
+                        <br/>请使用红色标记前缀，青色标记后缀，连续点击按可切换标识类型&nbsp;&nbsp;*例如&nbsp;&nbsp;<b><a
                                 style="color:red">咩：【</a></b>请给我钱<b><a style="color:cyan">】</a></b></div>
                     <div class="category-content">
                         <div class="characters-list">
@@ -1636,7 +1636,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         html, body {
             margin: 0;
             padding: 0;
-            min-height: 100%;
+            height: 100%;
             overflow: hidden;
         }
 
