@@ -768,7 +768,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <template v-else>
                 <div class="header-title hide-ssm">
                     <div class="header-title-main">紫金葫芦</div>
-                    <div class="header-title-sub">v6.19 "BEE" build 1</div>
+                    <div class="header-title-sub">v7.9 "DOT" build 2</div>
                 </div>
                 <div class="items-at-right">
                     <div class="input-with-button">
@@ -869,7 +869,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <div v-else class="notify-text">
                         欢迎使用在线弹幕测试器
                         <br />
-                        紫金葫芦 v6.19 build 1
+                        紫金葫芦 v7.9 build 1
                         <br />
                         <br />
                         请输入或搜索直播房间号码后
@@ -1633,8 +1633,11 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         </dialog>
     </div>
     <style>
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
+            min-height: 100%;
+            overflow: hidden;
         }
 
         #app {
