@@ -677,68 +677,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             a.click();
         };
     </script>
-    <script>
-        // disabled temporarily
-
-        // from https://stackoverflow.com/a/20736292
-        // by @stevendaniels
-        // modified to match without cases
-        // not used yet
-        const PINYIN_REGEX = /((?:miu|[pm]ou|[bpm](?:o|e(?:i|ng?)?|a(?:ng?|i|o)?|i(?:e|ng?|a[no])?|u))|(?:f(?:ou?|[ae](?:ng?|i)?|u))|(?:d(?:e(?:i|ng?)|i(?:a[on]?|u))|[dt](?:a(?:i|ng?|o)?|e(?:i|ng)?|i(?:a[on]?|e|ng|u)?|o(?:ng?|u)|u(?:o|i|an?|n)?))|(?:neng?|[ln](?:a(?:i|ng?|o)?|e(?:i|ng)?|i(?:ang|a[on]?|e|ng?|u)?|o(?:ng?|u)|u(?:o|i|an?|n)?|ve?))|(?:[ghk](?:a(?:i|ng?|o)?|e(?:i|ng?)?|o(?:u|ng)|u(?:a(?:i|ng?)?|i|n|o)?))|(?:zh?ei|[cz]h?(?:e(?:ng?)?|o(?:ng?|u)?|ao|u?a(?:i|ng?)?|u?(?:o|i|n)?))|(?:song|[sS]hua(?:i|ng?)?|shei|sh?(?:a(?:i|ng?|o)?|en?g?|ou|u(?:a?n|o|i)?|i))|(?:r(?:[ae]ng?|i|e|ao|ou|ong|u[oin]|ua?n?))|(?:[jqx](?:i(?:a(?:o|ng?)?|[eu]|ong|ng?)?|u(?:e|a?n)?))|(?:(?:a(?:i|o|ng?)?|ou?|e(?:i|ng?|r)?))|(?:w(?:a(?:i|ng?)?|o|e(?:i|ng?)?|u))|y(?:a(?:o|ng?)?|e|in?g?|o(?:u|ng)?|u(?:e|a?n)?))/i;
-
-        const SENSITIVE_SINGLE_CHARS = Object.freeze({
-            kou: '口',
-            song: '送',
-            shui: '睡',
-            lu: '录',
-            qian: '钱',
-            zhuang: '装',
-            guan: '管',
-            gua: '挂',
-            nai: '奶',
-            lan: '烂',
-            hu: '护',
-            bie: '别',
-            qiu: '求',
-            ma: '妈',
-            suo: '锁',
-            yan: '演',
-            xian: '限',
-            shua: '刷',
-            mai: '卖',
-            tui: '推',
-            huan: '换',
-            fu: '服',
-            jiu: '救',
-            ku: '哭',
-            jing: '警',
-            xing: '行',
-            bo: '播',
-            gui: '鬼',
-            zhi: '指'
-        });
-
-        const refine = string => string.replaceAll(RegExp(String.fromCodePoint(0xe0020), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0021), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0022), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0023), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0024), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0025), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0026), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0027), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0028), 'g'), '')
-            .replaceAll(RegExp(String.fromCodePoint(0xe0029), 'g'), '')
-            .replaceAll(/\u0592|\u0594/g, '');
-
-        const recovery = string => {
-            for (let pinyin in SENSITIVE_SINGLE_CHARS) {
-                string = string.replaceAll(RegExp(pinyin, 'g'), SENSITIVE_SINGLE_CHARS[pinyin]);
-            }
-            string = string.replaceAll(/ロ/g, '口');
-            return string;
-        };
-
-    </script>
     <!-- <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.1.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mosha-vue-toastify@1.0.23/dist/style.css"> -->
     <link rel="stylesheet" href="./css/all.min.css">
@@ -768,7 +706,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
             <template v-else>
                 <div class="header-title hide-ssm">
                     <div class="header-title-main">紫金葫芦</div>
-                    <div class="header-title-sub">v7.9 "DOT" build 3</div>
+                    <div class="header-title-sub">v9.6 "LINE" build 1</div>
                 </div>
                 <div class="items-at-right">
                     <div class="input-with-button">
@@ -796,9 +734,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </div>
                 <template v-if="danmakuList.length">
                     <div class="floating-area">
-                        <button class="report-button" @click="enableReporting = !enableReporting">
-                            {{ enableReporting ? '禁' : '启' }}用弹幕敏感词报告
-                        </button>
                         <button class="goto-button" @click="gotoLivingRoom">
                             进入直播间
                         </button>
@@ -815,8 +750,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                             <div v-for="danmaku in danmakuList" class="danmaku-box"
                                 :style="danmaku.member ? {background: danmaku.member.style.backgroundColor} : {}"
                                 @click="selectDanmaku(danmaku)">
-                                <i class="fa-solid fa-flag floating-flag" v-if="enableReporting"
-                                    @click="openReportDialog(danmaku.original ? danmaku.original : danmaku.content)"></i>
                                 <template v-if="danmaku.member && danmaku.member.action == 'ignore'">
                                     <div class="danmaku-user" style="text-decoration-line: line-through;">{{
                                         danmaku.user }} ({{ danmaku.uid }}) @{{ roomLiving > 0 ?
@@ -869,7 +802,7 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     <div v-else class="notify-text">
                         欢迎使用在线弹幕测试器
                         <br />
-                        紫金葫芦 v7.9 build 3
+                        紫金葫芦 v9.6 build 1
                         <br />
                         <br />
                         请输入或搜索直播房间号码后
@@ -1601,36 +1534,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 </div>
             </div>
         </dialog>
-        <dialog ref="reportDialog">
-            <div class="dialog-content" style="min-width: 25vw;">
-                <i class="fa-solid fa-xmark floating-x" @click="closeReportDialog"></i>
-                <div class="settings-category">
-                    <div class="category-name">报告未识别/识别错误的屏蔽词</div>
-                    <div class="category-content">
-                        <div class="settings-category">
-                            <div class="category-name">快捷选择</div>
-                            <div class="category-content">
-                                <div class="characters-list">
-                                    <div v-for="char in selectedDanmakuCharacters" @click="updateOriginSelected(char)"
-                                        class="character-item"
-                                        :style="{ borderColor: ['white', '#00bfff'][+char.selected], color: ['white', '#00bfff'][+char.selected] }">
-                                        {{ char.char }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grouping-items">
-                            <div class="grouping-label">原文本</div>
-                            <input class="grouping-input" v-model="reportOriginal">
-                            <div class="grouping-label">应该是</div>
-                            <input class="grouping-input" v-model="reportShouldBe">
-                        </div>
-                    </div>
-                </div>
-                <div class="dialog-big-button" @click="confirmReporting">
-                    <div class="big-button-label">确定</div>
-                </div>
-            </div>
-        </dialog>
     </div>
     <style>
         html, body {
@@ -2132,21 +2035,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
         }
 
         .goto-button:active {
-            background-color: transparent;
-        }
-
-        .report-button {
-            background-color: transparent;
-            border: #00bfff 1px solid;
-            color: #00bfff;
-            border-radius: 3px;
-        }
-
-        .report-button:hover {
-            background-color: rgba(0, 191, 255, 0.5);
-        }
-
-        .report-button:active {
             background-color: transparent;
         }
 
@@ -2724,12 +2612,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                     // live room meta info
                     roomTitle: '',
                     liverName: '',
-                    // banned words recovery
-                    tryRecoveryFromBannedWords: false,
-                    // reporting danmaku
-                    enableReporting: false,
-                    reportOriginal: '',
-                    reportShouldBe: '',
                     // tabSwitch
                     addRuleTab: 0,
                     // notification
@@ -2866,16 +2748,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                                 original: '',
                                 member: null
                             };
-
-                            if (this.tryRecoveryFromBannedWords) {
-                                let recovered = recovery(danmaku.content);
-                                danmaku.content = refine(danmaku.content);
-                                recovered = refine(recovered);
-                                if (recovered !== danmaku.content) {
-                                    danmaku.original = danmaku.content;
-                                    danmaku.content = recovered;
-                                }
-                            }
 
                             for (let member of this.members) {
                                 if (member.enabled && member.ruleMatcher) {
@@ -3625,57 +3497,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 },
                 gotoLivingRoom() {
                     window.open('https://live.bilibili.com/' + this.roomId);
-                },
-                openReportDialog(content) {
-                    this.reportOriginal = '';
-                    this.reportShouldBe = '';
-                    this.selectedDanmakuCharacters = Array.from(segmentit.doSegment(content)).map(obj => ({ char: obj.w, selected: false }));
-                    this.$refs.reportDialog.showModal();
-                },
-                closeReportDialog() {
-                    this.$refs.reportDialog.close();
-                },
-                async confirmReporting() {
-                    if (this.reportOriginal && this.reportShouldBe) {
-                        let response = await fetch('https://report.danmaku.meagames.cn/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                original: this.reportOriginal,
-                                shouldBe: this.reportShouldBe
-                            })
-                        });
-                        let result = await response.json();
-                        if (result.status === 'succeed') {
-                            mosha.createToast({
-                                title: '提交成功',
-                                description: `感谢您对本项目的贡献`
-                            }, {
-                                type: 'success',
-                                hideProgressBar: true
-                            });
-                        } else {
-                            mosha.createToast({
-                                title: '提交失败',
-                                description: `我也不知道为啥`
-                            }, {
-                                type: 'danger',
-                                hideProgressBar: true
-                            });
-                        }
-                    }
-                    this.closeReportDialog();
-                },
-                updateOriginSelected(char) {
-                    char.selected = !char.selected;
-                    this.reportOriginal = '';
-                    for (let char of this.selectedDanmakuCharacters) {
-                        if (char.selected) {
-                            this.reportOriginal += char.char;
-                        }
-                    }
                 }
             },
             computed: {
@@ -3717,9 +3538,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 deleteIgnoreDanmaku(val) {
                     localStorage.setItem('deleteIgnoreDanmaku', val);
                 },
-                // tryRecoveryFromBannedWords(val) {
-                //     localStorage.setItem('tryRecoveryFromBannedWords', val);
-                // },
                 members: {
                     handler(val) {
                         localStorage.setItem('members', JSON.stringify(val));
@@ -3746,7 +3564,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
                 loadData('currentRuleId', v => +v);
                 loadData('selectedIndex', v => +v);
                 loadData('members', JSON.parse);
-                // loadData('tryRecoveryFromBannedWords', JSON.parse);
                 if (this.selectedIndex != -1) {
                     this.selectedMember = this.members[this.selectedIndex];
                 }
@@ -4059,9 +3876,6 @@ Style: ${style.name},${style.fontName},${style.fontSize},${convertColor(style.pr
     <script>
         const segmentit = Segmentit.useDefault(new Segmentit.Segment());
     </script>
-    <span style="display:none">
-        <script>document.write(unescape("%3Cspan id='cnzz_stat_icon_1280554871'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280554871%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
-    </span>
 </body>
 
 </html>
